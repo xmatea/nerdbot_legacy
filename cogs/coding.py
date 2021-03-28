@@ -7,7 +7,6 @@ import requests
 from io import BytesIO
 import numpy
 import html_module
-from types import SimpleNamespace
 
 
 config = readjson('config.json')
@@ -29,13 +28,13 @@ class Coding(commands.Cog):
         img = Image.open(requests.get(url, stream=True).raw)
         na = numpy.array(img.convert('RGB'))
 
-        rgb = [int(i) for i in na.mean(axis=0).mean(axis=0)]
-        hex = '%02x%02x%02x' % tuple(rgb)
+        rgb = tuple([int(i) for i in na.mean(axis=0).mean(axis=0)])
+        hx = '%02x%02x%02x' % rgb
 
-        embed = discord.Embed(title="Mean colour", colour=colour_convert(hex), description="Image mean colour value:")
-        embed.add_field(name="HEX", value=hex)
-        embed.add_field(name="RGB", value=f"({tuple(rgb)[0]}, {tuple(rgb)[1]}, {tuple(rgb)[2]})")
-        embed.add_field(name="Integer", value=colour_convert(hex))
+        embed = discord.Embed(title="Mean colour", colour=colour_convert(hx), description="Image mean colour value:")
+        embed.add_field(name="HEX", value=hx)
+        embed.add_field(name="RGB", value=f"({rgb[0]}, {rgb[1]}, {rgb[2]})")
+        embed.add_field(name="Integer", value=colour_convert(hx))
         await ctx.send(content="", embed=embed)
 
 
@@ -43,14 +42,14 @@ class Coding(commands.Cog):
     async def html_to_img(self, ctx, *, html=None):
         if html is None:
             if not ctx.message.attachments:
-                raise commands.MissingRequiredArgument(SimpleNamespace(name="html"))
+                raise commands.BadArgument
 
             url = ctx.message.attachments[0].url
             html = requests.get(url).text
 
         img = await html_module.convert_to_img(html)
-
         img.seek(0)
+
         await ctx.send(file=discord.File(img, "image.png"))
 
 
