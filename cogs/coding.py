@@ -39,7 +39,7 @@ class Coding(commands.Cog):
     async def html_to_img(self, ctx, *, html=None):
         if html is None:
             if not ctx.message.attachments:
-                raise commands.MissingRequiredArgument(SimpleNamespace(name="html"))
+                raise commands.BadArgument
 
             url = ctx.message.attachments[0].url  
             html = requests.get(url).text
