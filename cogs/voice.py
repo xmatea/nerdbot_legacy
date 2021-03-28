@@ -5,15 +5,15 @@ import random
 
 config = process.readjson('config.json')
 
-class Math(commands.Cog):
+class Voice(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.hidden = False
-        self.name = 'Math'
+        self.name = 'Voice'
 
     @commands.command()
-    async def plot(self, ctx, *args):
-        await ctx.send("plotting, please wait...")
+    async def play(self, ctx, *args):
+        await ctx.send("now playing: ")
 
 def setup(bot):
-    bot.add_cog(Math(bot))
+    bot.add_cog(Voice(bot))

@@ -3,6 +3,7 @@ from discord.ext import commands
 import process
 import random
 
+
 config = process.readjson('config.json')
 speech = process.readjson('speech.json')
 
@@ -20,8 +21,8 @@ class Love(commands.Cog):
         await ctx.send(fact)
 
     @commands.command()
-    async def speak(self, ctx, *args):
-        await ctx.send("no")
+    async def bestperson(self, ctx, *args):
+        await ctx.send("morgan")
 
 def setup(bot):
     bot.add_cog(Love(bot))
