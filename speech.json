@@ -8,5 +8,16 @@
     "Morgan makes Matea so incredibly happy <3",
     "Morgan is so special to Matea <3"
 
-  ]
+  ],
+  "usage" : {
+    "img_to_colour": "Run `{0}img_to_colour` with your desired image as an attachment."
+  },
+
+  "brief": {
+    "img_to_colour": "Generates a colour palette from an image."
+  },
+
+  "help": {
+
+  }
 }

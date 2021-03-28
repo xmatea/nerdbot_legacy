@@ -23,13 +23,16 @@ class Coding(commands.Cog):
     @commands.command(alias="img_to_color")
     async def img_to_colour(self, ctx):
         if not ctx.message.attachments:
-            #raise commands.MissingRequiredArgument
-            await ctx.send("aaaa")
-        url = ctx.message.attachments[0].url
+            raise commands.BadArgument()
 
+        #url = ctx.message.attachments[0].url
+        url = "https://cdn.discordapp.com/attachments/825789854738677811/825803542388408330/apricat.jpg"
         img = Image.open(requests.get(url, stream=True).raw)
-        rgb_r = img.load()[1,1]
-        hex_r = '%02x%02x%02x' % rgb_r
+        na = numpy.array(img.convert('RGB'))
+        rgb_r = na.mean(axis=0).mean(axis=0)
+        print(rgb_r)
+        print(img.load()[1,1])
+        hex_r = '%02x%02x%02x' % rgb_r.tolist()
         embed = discord.Embed(title="colour", colour=colour_convert(hex_r))
         embed.description = f"{hex_r}"
         await ctx.send(content="", embed=embed)
