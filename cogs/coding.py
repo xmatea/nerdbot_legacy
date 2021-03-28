@@ -6,6 +6,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 import numpy
+import html_module
 
 
 config = readjson('config.json')
@@ -31,6 +32,17 @@ class Coding(commands.Cog):
         embed = discord.Embed(title="colour", colour=colour_convert(hex_r))
         embed.description = f"{hex_r}"
         await ctx.send(content="", embed=embed)
+
+
+    @commands.command()
+    async def html_to_img(self, ctx, *, html):
+        if len(html) == 0:
+            rasie commands.MissingRequiredArgument
+        else:
+            img = await html_module.convert_to_img(html)
+            img.seek(0)
+            await ctx.send(file=discord.File(img, "image.png"))
+
 
 def setup(bot):
     bot.add_cog(Coding(bot))
