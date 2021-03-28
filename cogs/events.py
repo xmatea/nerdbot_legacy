@@ -4,6 +4,7 @@ import datetime
 from process import readjson
 
 speech = readjson('speech.json')
+config = readjson('config.json')
 
 class EventHandler(commands.Cog):
     def __init__(self, bot):
@@ -17,11 +18,15 @@ class EventHandler(commands.Cog):
 
         if isinstance(error, commands.BotMissingPermissions):
             return await ctx.send(speech.err.botnoperm.format(error.missing_perms))
-
-        if isinstance(error, commands.MissingRequiredArgument):
-            return await ctx.send("bad argument")
-
-
+            
+        if isinstance(error, commands.BadArgument):
+            usagestr = "Incorrect usage"
+            try:
+                usagestr = getattr(speech.usage, ctx.command.name).format(config.prefix)
+            except:
+                print(f"warning: {ctx.command.name} has no usage description")
+            embed = discord.Embed(title=f"[{ctx.command.name}] Command usage", description=usagestr)
+            return await ctx.send(content="", embed=embed)
 
 def setup(bot):
     bot.add_cog(EventHandler(bot))
