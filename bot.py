@@ -1,18 +1,37 @@
+# init
 import discord
-token = 'ODI1NDMwOTg4OTk3NTI1NTA0.YF90gw.K91ZIwxgCNhOecwq1XYzGQWx-Bg'
+from discord.ext import commands
+from dotenv import load_dotenv
+import os
+from datetime import date, datetime
+import process
+import logging
 
-class Bot(discord.Client):
-    async def on_message(self, msg):
-        msg_arr = msg.content.split(" ")
-        if not msg_arr[0] == "nerdbot":
-            return
+# load and read configurations
+load_dotenv()
+TOKEN = os.getenv("TOKEN");
+Config = process.readjson('config.json')
+logging.basicConfig(level=logging.INFO)
 
-        cmd=msg_arr[1]
-        args=msg_arr[2:]
+# define NerdBot class
+class NerdBot(commands.Bot):
+    def __init__(self):
+        super().__init__(command_prefix=Config.prefix)
 
-        if cmd == 'nerdbot':
-            await ctx.send('more')
-  
+# create bot instance
+bot = NerdBot()
 
-nerdbot = Bot()
-nerdbot.run(token)
+# read and load command groups
+bot.remove_command('help')
+bot.remove_cog('general')
+for file in os.listdir("cogs"):
+    if file.endswith('.py'):
+        name = file[:-3]
+        bot.load_extension(f"cogs.{name}")
+
+@bot.event
+async def on_ready():
+    await bot.change_presence(activity=discord.Game("nerding"))
+    print("Nerdbot started at {0}\nLoaded {1} cog(s) and commands: {2}".format(datetime.now().strftime("%H:%M:%S"), len(bot.cogs), bot.command_prefix))
+
+bot.run(TOKEN)
