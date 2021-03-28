@@ -6,6 +6,8 @@ from PIL import Image
 import requests
 from io import BytesIO
 import numpy
+import html_module
+from types import SimpleNamespace
 
 
 config = readjson('config.json')
@@ -31,6 +33,22 @@ class Coding(commands.Cog):
         embed = discord.Embed(title="colour", colour=colour_convert(hex_r))
         embed.description = f"{hex_r}"
         await ctx.send(content="", embed=embed)
+
+
+    @commands.command()
+    async def html_to_img(self, ctx, *, html=None):
+        if html is None:
+            if not ctx.message.attachments:
+                raise commands.MissingRequiredArgument(SimpleNamespace(name="html"))
+
+            url = ctx.message.attachments[0].url  
+            html = requests.get(url).text
+
+        img = await html_module.convert_to_img(html)
+
+        img.seek(0)
+        await ctx.send(file=discord.File(img, "image.png"))
+
 
 def setup(bot):
     bot.add_cog(Coding(bot))
