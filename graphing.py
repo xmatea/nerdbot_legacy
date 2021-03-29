@@ -3,9 +3,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, List, Tuple
 from PIL import Image
+from mathparser import MathParser
 
 # plot equation on cartesian graph and return png byte array
-def static_cartesian(func: Callable[[np.ndarray], np.ndarray], x_range: Tuple[float, float]) -> io.BytesIO:
+def static_cartesian(expr: str, x_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots()
 
 	ax.grid(True, which="both")
@@ -19,11 +20,13 @@ def static_cartesian(func: Callable[[np.ndarray], np.ndarray], x_range: Tuple[fl
 	ax.xaxis.tick_bottom()
 
 	x1, x2 = x_range
+	mp = MathParser()
 
 	x = np.linspace(x1, x2, 10*int(x2-x1))
-	y = func(x)
+	y = mp.evaluate(expr, ("x", x))
 
 	ax.plot(x, y)
+	fig.text(0.02, 0.92, f"y = {expr}", fontsize=16)
 
 	buf = io.BytesIO()
 	plt.savefig(buf, format="png")
@@ -77,7 +80,7 @@ def animated_cartesian(func: Callable[[np.ndarray, np.ndarray], np.ndarray], x_r
 
 
 # plot equation on polar graph and return png byte array
-def static_polar(func: Callable[[np.ndarray], np.ndarray], theta_range: Tuple[float, float]) -> io.BytesIO:
+def static_polar(expr: str, theta_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
 
 	ax.grid(True, which="both")
@@ -85,9 +88,11 @@ def static_polar(func: Callable[[np.ndarray], np.ndarray], theta_range: Tuple[fl
 	theta1, theta2 = theta_range
 	theta = np.linspace(theta1, theta2, 1000)
 
-	r = func(theta)
+	mp = MathParser()
+	r = mp.evaluate(expr, ("theta", theta))
 
 	ax.plot(r, theta)
+	fig.text(0.02, 0.92, f"r = {expr}", fontsize=16)
 
 	buf = io.BytesIO()
 	plt.savefig(buf, format="png")
@@ -283,8 +288,7 @@ def display_gif(gif: io.BytesIO) -> None:
 
 
 def main() -> None:
-	graph = animated_surface_rotate(lambda x, y, a: a * x**2 + a * y, (-5, 5), (0, 5), (0, 5))
-	display_gif(graph)
+	Image.open(static_cartesian("ln(abs(sin(x^2)))", (-10, 10))).show()
 
 
 if __name__ == "__main__":
