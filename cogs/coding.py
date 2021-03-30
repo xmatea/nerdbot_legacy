@@ -22,7 +22,7 @@ class Coding(commands.Cog):
     @commands.command(alias="img_to_color")
     async def img_to_colour(self, ctx):
         if not ctx.message.attachments:
-            raise commands.BadArgument()
+            raise commands.UserInputError()
 
         url = ctx.message.attachments[0].url
         img = Image.open(requests.get(url, stream=True).raw)
@@ -51,6 +51,10 @@ class Coding(commands.Cog):
         img.seek(0)
 
         await ctx.send(file=discord.File(img, "image.png"))
+
+    @commands.command()
+    async def test(self):
+        print("aa")
 
 
 def setup(bot):
