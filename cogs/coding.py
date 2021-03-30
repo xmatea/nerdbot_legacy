@@ -8,6 +8,7 @@ from io import BytesIO
 import numpy
 import html_module
 import bf
+import colouring
 
 
 config = readjson('config.json')
@@ -20,23 +21,34 @@ class Coding(commands.Cog):
         self.hidden = False
         self.name = 'Coding'
 
-    @commands.command(alias="img_to_color")
+    @commands.group(aliases=["img_to_color"])
     async def img_to_colour(self, ctx):
         if not ctx.message.attachments:
             raise commands.UserInputError()
 
+        if ctx.invoked_subcommand is None:
+            url = ctx.message.attachments[0].url
+            img = Image.open(requests.get(url, stream=True).raw)
+            na = numpy.array(img.convert('RGB'))
+
+            rgb = tuple([int(i) for i in na.mean(axis=0).mean(axis=0)])
+            hx = '%02x%02x%02x' % rgb
+
+            embed = discord.Embed(title="Mean colour", colour=colour_convert(hx), description="Image mean colour value:")
+            embed.add_field(name="HEX", value=hx)
+            embed.add_field(name="RGB", value=f"({rgb[0]}, {rgb[1]}, {rgb[2]})")
+            embed.add_field(name="Integer", value=colour_convert(hx))
+            await ctx.send(content="", embed=embed)
+
+    @img_to_colour.command(aliases=["-p"])
+    async def palette(self, ctx):
         url = ctx.message.attachments[0].url
-        img = Image.open(requests.get(url, stream=True).raw)
-        na = numpy.array(img.convert('RGB'))
+        img = Image.open(requests.get(url, stream=True).raw).convert('RGB')
 
-        rgb = tuple([int(i) for i in na.mean(axis=0).mean(axis=0)])
-        hx = '%02x%02x%02x' % rgb
+        palette = colouring.generate_palette(img)
+        palette.seek(0)
 
-        embed = discord.Embed(title="Mean colour", colour=colour_convert(hx), description="Image mean colour value:")
-        embed.add_field(name="HEX", value=hx)
-        embed.add_field(name="RGB", value=f"({rgb[0]}, {rgb[1]}, {rgb[2]})")
-        embed.add_field(name="Integer", value=colour_convert(hx))
-        await ctx.send(content="", embed=embed)
+        await ctx.send(file=discord.File(palette, "palette.png"))
 
 
     @commands.command()
@@ -53,8 +65,12 @@ class Coding(commands.Cog):
 
         await ctx.send(file=discord.File(img, "image.png"))
 
+    @commands.command()
+    async def test(self):
+        print("aa")
 
-    @commands.command(aliases=["bf"] hidden=True) #I'M' BROKEN, FIX MEEEEEEEEE
+
+    @commands.command(aliases=["bf"]) #I'M' BROKEN, FIX MEEEEEEEEE
     async def brainfuck(self, ctx, *, code=None): # brainfuck minus input
         if code is None:
             if not ctx.message.attachments:
@@ -64,13 +80,8 @@ class Coding(commands.Cog):
             code = requests.get(url).text
 
         output = bf.run(code)
+
         await ctx.send(output)
-
-    @commands.command()
-    async def basex_to_basey(self,ctx, basex:str, basey: str):
-        await ctx.send("no")
-
-
 
 
 def setup(bot):
