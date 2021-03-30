@@ -17,7 +17,7 @@ class Math(commands.Cog):
     @commands.command()
     async def plot(self, ctx, expression: str, *args):
         argument_flags = ('-range')
-        bool_flags = {'-rt': False}
+        bool_flags = {'-rt': False, '-polar': False}
 
         for arg in args:
             if arg in bool_flags.keys():
@@ -26,17 +26,20 @@ class Math(commands.Cog):
         args = [arg for arg in args if arg not in bool_flags]
         args = flagparser.format(args, argument_flags)
         args = {**args, **bool_flags}
-
+        print(args)
         ranges = {}
         if '-range' in args.keys():
             for rang in args['-range']:
-                r = re.match('[a-zA-Z]=\[-?\d+\.?\d*,-?\d+\.?\d*\]', rang)
+                r = re.match('[a-zA-Z]+=\[-?\d+\.?\d*,-?\d+\.?\d*\]', rang)
                 if r:
                     rmin, rmax = map(int, re.findall('-?\d+\.?\d*', rang))
-                    ranges.update({rang[0]: (rmin, rmax)})
+                    ranges.update({rang[:rang.index('=')]: (rmin, rmax)})
 
-
-        buf = graphing.static_cartesian(expression, ranges['x'])
+        print(ranges)
+        if args['-polar']:
+            buf = graphing.static_polar(expression, ranges['theta'])
+        else:
+            buf = graphing.static_cartesian(expression, ranges['x'])
         buf.seek(0)
 
         await ctx.send(file=discord.File(buf, "image.png"))
