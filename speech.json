@@ -6,18 +6,22 @@
     "Morgan is very cool hehe <3",
     "Matea is the luckiest girl in the world <3",
     "Morgan makes Matea so incredibly happy <3",
-    "Morgan is so special to Matea <3"
+    "Morgan is so special to Matea <3",
+    "Morgan + Matea = True <3",
+    "Morgan + Matea = Best couple hehe <3"
 
   ],
   "usage" : {
-    "img_to_colour": "Run `{0}img_to_colour` with your desired image as an attachment."
+    "img_to_colour": "Run `{0}img_to_colour` with your desired image as an attachment.",
+    "plot": "Run `{0}plot` to plot a mathematical expression.\n **Flags:**\n`-range`: Defaults to [-10,10]. Specify a range for your variables. \n\tExample: `{0}plot x^2+y -range x=[-5,5] y=[-2.5,2.5]`\n`-rt`: Defaults to false. Set the surface plot to rotate. \n`-polar` Defaults to false. Plots the graph in polar coordinates. Use theta instead of x. Default range is [0,2*pi]"
   },
 
   "brief": {
-    "img_to_colour": "Generates a colour palette from an image."
+    "img_to_colour": "Generates a colour palette from an image.",
+    "plot": "Plots a mathematical expression"
   },
 
   "help": {
-
+    "plot": "Plots a mathematical expression"
   }
 }

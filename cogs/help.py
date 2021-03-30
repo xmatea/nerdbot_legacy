@@ -23,7 +23,7 @@ class Help(commands.Cog):
                     text=""
                     for cmd in cog.get_commands():
                         if not cmd.hidden:
-                            text += f"{Config.prefix}{cmd.name}\n"
+                            text += f"{cmd.name}\n"
                     embed.add_field(name=c, value=text)
             await ctx.send(content="", embed=embed)
 

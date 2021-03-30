@@ -25,7 +25,7 @@ class EventHandler(commands.Cog):
                 usagestr = getattr(speech.usage, ctx.command.name).format(config.prefix)
             except:
                 print(f"warning: {ctx.command.name} has no usage description")
-            embed = discord.Embed(title=f"[{ctx.command.name}] How to use", description=usagestr)
+            embed = discord.Embed(title=f"[{ctx.command.name}] Usage", description=usagestr)
             return await ctx.send(content="", embed=embed)
 
 def setup(bot):

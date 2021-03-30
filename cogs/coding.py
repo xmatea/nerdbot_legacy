@@ -53,12 +53,8 @@ class Coding(commands.Cog):
 
         await ctx.send(file=discord.File(img, "image.png"))
 
-    @commands.command()
-    async def test(self):
-        print("aa")
 
-
-    @commands.command(aliases=["bf"]) #I'M' BROKEN, FIX MEEEEEEEEE
+    @commands.command(aliases=["bf"] hidden=True) #I'M' BROKEN, FIX MEEEEEEEEE
     async def brainfuck(self, ctx, *, code=None): # brainfuck minus input
         if code is None:
             if not ctx.message.attachments:
@@ -68,8 +64,13 @@ class Coding(commands.Cog):
             code = requests.get(url).text
 
         output = bf.run(code)
-
         await ctx.send(output)
+
+    @commands.command()
+    async def basex_to_basey(self,ctx, basex:str, basey: str):
+        await ctx.send("no")
+
+
 
 
 def setup(bot):
