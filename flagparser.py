@@ -1,11 +1,16 @@
-def format(args: tuple, flag_list: tuple):
+import re
+def format(args: str, flag_list: tuple, clearWhiteSpace: bool=True):
     formatted = {}
-    for index, arg in enumerate(args):
-        if arg in flag_list:
-            i=1
-            a=[]
-            while i < len(args)-index and not args[index+i] in flag_list:
-                a.append(args[index+i])
-                i+=1
-            formatted.update({arg: a})
-        return formatted
+
+    # will clear whitespace ex: -range x=[2, 7] will be formatted as {'-range': 'x=[2,7]'}
+    if clearWhiteSpace:
+        print("aaa")
+        args = args.replace(' ', '')
+
+    for flag in flag_list:
+        regex = f"{flag}(.*?)({'|'.join(flag_list)}|$)"
+        match = re.match(regex, args)
+        if not match:
+            break
+        formatted.update({flag: match.group(1)})
+        print(formatted)
