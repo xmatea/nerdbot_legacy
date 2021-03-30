@@ -15,12 +15,24 @@ class Voice(commands.Cog):
 
 
 	@commands.command()
-	async def play(self, ctx, url):
-		url = YouTube(url).streams[0].url
-		video = io.BytesIO(requests.get(url, stream=True).content)
-		video.seek(0)
+	async def join(self, ctx, *args):
+		channel = ctx.author.voice.channel
+		await channel.connect()
 
-		await ctx.send("Matea is SUPER hot 😍🥵")
+
+	@commands.command()
+	async def leave(self, ctx, *args):
+		await ctx.voice_client.disconnect()
+
+
+	@commands.command()
+	async def play(self, ctx, url):
+		url = YouTube(url).streams.filter(only_audio=True)[0].url
+
+		audio_source = discord.FFmpegPCMAudio(url)
+
+		if not ctx.voice_client.is_playing():
+			ctx.voice_client.play(audio_source, after=None)
 
 
 def setup(bot):
