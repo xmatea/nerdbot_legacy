@@ -16,8 +16,16 @@ class Math(commands.Cog):
 
     @commands.command()
     async def plot(self, ctx, expression: str, *args):
-        flags = ('-range', '-rt')
-        args = flagparser.format(args, flags)
+        argument_flags = ('-range')
+        bool_flags = {'-rt': False}
+
+        for arg in args:
+            if arg in bool_flags.keys():
+                bool_flags[arg] = True
+
+        args = [arg for arg in args if arg not in bool_flags]
+        args = flagparser.format(args, argument_flags)
+        args = {**args, **bool_flags}
 
         #print(args)
         ranges = []
