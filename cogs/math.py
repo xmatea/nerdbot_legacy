@@ -15,15 +15,15 @@ class Math(commands.Cog):
         self.name = 'Math'
 
     @commands.command()
-    async def plot(self, ctx, expression: str, *args):
+    async def plot(self, ctx, expression: str, *, args):
         argument_flags = ('-range')
         bool_flags = {'-rt': False, '-polar': False}
 
-        for arg in args:
-            if arg in bool_flags.keys():
-                bool_flags[arg] = True
+        for flag in bool_flags.keys():
+            if flag in args:
+                bool_flags[flag] = True
+                args = args.replace(flag, "")
 
-        args = [arg for arg in args if arg not in bool_flags]
         args = flagparser.format(args, argument_flags)
         args = {**args, **bool_flags}
         print(args)
@@ -32,7 +32,7 @@ class Math(commands.Cog):
             for rang in args['-range']:
                 r = re.match('[a-zA-Z]+=\[-?\d+\.?\d*,-?\d+\.?\d*\]', rang)
                 if r:
-                    rmin, rmax = map(int, re.findall('-?\d+\.?\d*', rang))
+                    rmin, rmax = map(float, re.findall('-?\d+\.?\d*', rang))
                     ranges.update({rang[:rang.index('=')]: (rmin, rmax)})
 
         print(ranges)
