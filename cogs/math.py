@@ -27,24 +27,19 @@ class Math(commands.Cog):
         args = flagparser.format(args, argument_flags)
         args = {**args, **bool_flags}
 
-        #print(args)
-        ranges = []
-        if '-range' in args:
-
-            for rang in args:
+        ranges = {}
+        if '-range' in args.keys():
+            for rang in args['-range']:
                 r = re.match('[a-zA-Z]=\[\d+\.?\d*,\d+\.?\d*]', rang)
                 if r:
                     min, max = re.findall('\d+\.?\d*', rang)
-                    ranges.append({rang[0]: (min, max)})
+                    ranges.update({rang[0]: (min, max)})
 
-        #parse string to math expression
-        """
+
         func = lambda x: x**2+y
-        x_range = (x_min, x_max)
-        buf = graphing.static_surface(func, x_range)
+        buf = graphing.static_cartesian(expression, ranges['x'])
         buf.seek(0)
         await ctx.send(file=discord.File(buf, "anim.gif"))
-        """
 
     @commands.command()
     async def polar_(self, ctx, expression: str, x_min: int, x_max: int, y_min: int, y_max: int):

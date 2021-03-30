@@ -1,4 +1,3 @@
-import discord
 import json
 from collections import namedtuple
 from json import JSONEncoder
