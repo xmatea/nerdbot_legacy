@@ -4,7 +4,7 @@ from math import sqrt, prod
 from types import SimpleNamespace
 from process import colour_convert
 from functools import reduce
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 # generate colour palette using k-means algorithm
 def generate_palette(img: Image, n_colours:int = 5) -> io.BytesIO:
@@ -70,12 +70,26 @@ def generate_palette(img: Image, n_colours:int = 5) -> io.BytesIO:
 
 
 	def generate_image(colour_rgb):
-		colour_hex = "#%02x%02x%02x" % colour_rgb
+		colour_hex = "".join(map(lambda x: x.upper() if isinstance(x, str) else x, "#%02x%02x%02x")) % colour_rgb
 		colour_int = colour_convert(colour_hex)
 
-		img = Image.new("RGB", (128, 128), colour_hex)
+		img = Image.new("RGB", (256, 256), colour_hex)
+		draw = ImageDraw.Draw(img)
 
-		# add text to the images
+		r, g, b = colour_rgb
+		perceptive_luminance = (0.299 * r + 0.587 * g + 0.114 * b)/255
+
+		# white for dark background, black for light background
+		font_colour = "#000000" if perceptive_luminance > 0.5 else "#FFFFFF"
+		font = ImageFont.truetype("RobotoMono.ttf", 25)
+
+		hex_w, h = draw.textsize(colour_hex, font=font)
+		rgb_w, _ = draw.textsize(f"({r},{g},{b})", font=font)
+		int_w, _ = draw.textsize(str(colour_int), font=font)
+
+		draw.text(((256-hex_w)/2, ((256-h)/2)-1.5*h), colour_hex, font_colour, font)
+		draw.text(((256-rgb_w)/2, ((256-h)/2)-0.5*h), f"({r},{g},{b})", font_colour, font)
+		draw.text(((256-int_w)/2, ((256-h)/2)+0.5*h), str(colour_int), font_colour, font)
 
 		return img
 

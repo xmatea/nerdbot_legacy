@@ -40,6 +40,7 @@ class Coding(commands.Cog):
             embed.add_field(name="Integer", value=colour_convert(hx))
             await ctx.send(content="", embed=embed)
 
+
     @img_to_colour.command(aliases=["-p"])
     async def palette(self, ctx):
         url = ctx.message.attachments[0].url
@@ -64,24 +65,6 @@ class Coding(commands.Cog):
         img.seek(0)
 
         await ctx.send(file=discord.File(img, "image.png"))
-
-    @commands.command()
-    async def test(self):
-        print("aa")
-
-
-    @commands.command(aliases=["bf"]) #I'M' BROKEN, FIX MEEEEEEEEE
-    async def brainfuck(self, ctx, *, code=None): # brainfuck minus input
-        if code is None:
-            if not ctx.message.attachments:
-                raise commands.BadArgument
-
-            url = ctx.message.attachments[0].url
-            code = requests.get(url).text
-
-        output = bf.run(code)
-
-        await ctx.send(output)
 
 
 def setup(bot):
