@@ -7,6 +7,7 @@ import requests
 from io import BytesIO
 import numpy
 import html_module
+import bf
 
 
 config = readjson('config.json')
@@ -51,6 +52,20 @@ class Coding(commands.Cog):
         img.seek(0)
 
         await ctx.send(file=discord.File(img, "image.png"))
+
+
+    @commands.command(aliases=["bf"]) #I'M' BROKEN, FIX MEEEEEEEEE
+    async def brainfuck(self, ctx, *, code=None): # brainfuck minus input
+        if code is None:
+            if not ctx.message.attachments:
+                raise commands.BadArgument
+
+            url = ctx.message.attachments[0].url
+            code = requests.get(url).text
+
+        output = bf.run(code)
+
+        await ctx.send(output)
 
 
 def setup(bot):
