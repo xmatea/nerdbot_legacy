@@ -8,7 +8,7 @@ from io import BytesIO
 import numpy
 import html_module
 import bf
-import colouring
+import image_processing
 
 
 config = readjson('config.json')
