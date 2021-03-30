@@ -18,14 +18,14 @@ class EventHandler(commands.Cog):
 
         if isinstance(error, commands.BotMissingPermissions):
             return await ctx.send(speech.err.botnoperm.format(error.missing_perms))
-            
-        if isinstance(error, commands.BadArgument):
+
+        if isinstance(error, commands.UserInputError):
             usagestr = "Incorrect usage"
             try:
                 usagestr = getattr(speech.usage, ctx.command.name).format(config.prefix)
             except:
                 print(f"warning: {ctx.command.name} has no usage description")
-            embed = discord.Embed(title=f"[{ctx.command.name}] Command usage", description=usagestr)
+            embed = discord.Embed(title=f"[{ctx.command.name}] How to use", description=usagestr)
             return await ctx.send(content="", embed=embed)
 
 def setup(bot):
