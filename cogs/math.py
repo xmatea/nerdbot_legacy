@@ -16,7 +16,7 @@ class Math(commands.Cog):
 
     @commands.command()
     async def plot(self, ctx, expression: str, *, args):
-        argument_flags = ('-range')
+        argument_flags = ('-range', '-rt')
         bool_flags = {'-rt': False, '-polar': False}
 
         for flag in bool_flags.keys():
@@ -24,19 +24,18 @@ class Math(commands.Cog):
                 bool_flags[flag] = True
                 args = args.replace(flag, "")
 
-        args = flagparser.format(args, argument_flags)
-        args = {**args, **bool_flags}
-        print(args)
+        args = flagparser.format(''.join(args), argument_flags, True)
+
         ranges = {}
         if '-range' in args.keys():
-            for rang in args['-range']:
-                r = re.match('[a-zA-Z]+=\[-?\d+\.?\d*,-?\d+\.?\d*\]', rang)
-                if r:
-                    rmin, rmax = map(float, re.findall('-?\d+\.?\d*', rang))
-                    ranges.update({rang[:rang.index('=')]: (rmin, rmax)})
+            matches = re.findall('([a-zA-Z]+)=\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]', args['-range'])
+            if not matches:
+                raise commands.UserInputError()
 
-        print(ranges)
-        if args['-polar']:
+            for m in matches:
+                ranges.update({m[0]: (float(m[1]), float (m[2]))})
+
+        if bool_flags['-polar']:
             buf = graphing.static_polar(expression, ranges['theta'])
         else:
             buf = graphing.static_cartesian(expression, ranges['x'])
@@ -44,9 +43,6 @@ class Math(commands.Cog):
 
         await ctx.send(file=discord.File(buf, "image.png"))
 
-    @commands.command()
-    async def polar_(self, ctx, expression: str, x_min: int, x_max: int, y_min: int, y_max: int):
-        await ctx.send("no")
 
 def setup(bot):
-    bot.add_cog(Math(bot)) 
+    bot.add_cog(Math(bot))
