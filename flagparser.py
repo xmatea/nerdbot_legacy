@@ -11,5 +11,4 @@ def format(args: str, flag_list: tuple, clearWhiteSpace: bool=True):
         if not match:
             break
         formatted.update({flag: match.group(1)})
-
     return formatted

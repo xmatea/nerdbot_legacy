@@ -5,6 +5,7 @@ import random
 import graphing
 import re
 import flagparser
+from mathparser import MathParser
 
 config = process.readjson('config.json')
 
@@ -25,22 +26,23 @@ class Math(commands.Cog):
                 args = args.replace(flag, "")
 
         args = flagparser.format(''.join(args), argument_flags, True)
-
         ranges = {}
+
         if '-range' in args.keys():
-            matches = re.findall('([a-zA-Z]+)=\[(-?\d+\.?\d*),(-?\d+\.?\d*)\]', args['-range'])
+            matches = re.findall('([a-zA-Z]+)=\[([^,\[\]].*?),([^,\[\]].*?)\]', args['-range'])
             if not matches:
                 raise commands.UserInputError()
 
             for m in matches:
-                ranges.update({m[0]: (float(m[1]), float (m[2]))})
+                ranges.update({m[0]: (m[1], m[2]) })
+
 
         if bool_flags['-polar']:
             buf = graphing.static_polar(expression, ranges['theta'])
         else:
-            buf = graphing.static_cartesian(expression, ranges['x'])
-        buf.seek(0)
+            buf = graphing.static_cartesian(expression, (0, 10))
 
+        buf.seek(0)
         await ctx.send(file=discord.File(buf, "image.png"))
 
 
