@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from typing import Callable, List, Tuple
 from PIL import Image
 from mathparser import MathParser
+import re
 
 # plot equation on cartesian graph and return png byte array
 def static_cartesian(expr: str, x_range: Tuple[float, float]) -> io.BytesIO:
@@ -35,7 +36,7 @@ def static_cartesian(expr: str, x_range: Tuple[float, float]) -> io.BytesIO:
 
 
 # plot equation on cartesian graph and return gif byte array of animating a value over specified range
-def animated_cartesian(func: Callable[[np.ndarray, np.ndarray], np.ndarray], x_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
+def animated_cartesian(expr: str, x_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots()
 
 	ax.grid(True, which="both")
@@ -54,14 +55,16 @@ def animated_cartesian(func: Callable[[np.ndarray, np.ndarray], np.ndarray], x_r
 	x = np.linspace(x1, x2, 10*int(x2-x1))
 	a = np.linspace(a1, a2, int(a2-a1)+1)
 
+	mp = MathParser()
+
 	plt.xlim(x1, x2)
-	plt.ylim(min(0, func(x1, a2)), func(x2, a2))
+	plt.ylim(min(0, mp.evaluate(expr.replace("x", f"({str(x1)})").replace("a", f"({str(a2)})")), mp.evaluate(expr.replace("x", f"({str(x2)})").replace("a", f"({str(a2)})"))))
 
 	plt.autoscale(False)
 
 	frames = []
 	for a_val in a:
-		y = func(x, a_val)
+		y = mp.evaluate(expr.replace("a", f"({str(a_val)})"), ("x", x)) # use a regex so it only matches the variable a
 
 		curve = ax.plot(x, y)
 		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
@@ -85,10 +88,11 @@ def static_polar(expr: str, theta_range: Tuple[float, float]) -> io.BytesIO:
 
 	ax.grid(True, which="both")
 
-	theta1, theta2 = theta_range
-	theta = np.linspace(theta1, theta2, 1000)
-
 	mp = MathParser()
+
+	theta1, theta2 = theta_range
+	theta = np.linspace(theta1, theta2, 360*int(mp.evaluate(expr.replace("theta", f"({theta2})"))))
+
 	r = mp.evaluate(expr, ("theta", theta))
 
 	ax.plot(r, theta)
@@ -101,20 +105,23 @@ def static_polar(expr: str, theta_range: Tuple[float, float]) -> io.BytesIO:
 
 
 # plot equation on polar graph and return gif byte array of animating a value over specified range
-def animated_polar(func: Callable[[np.ndarray, np.ndarray], np.ndarray], theta_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
+def animated_polar(expr: str, theta_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
 
 	ax.grid(True, which="both")
 
+	mp = MathParser()
+
 	theta1, theta2 = theta_range
 	a1, a2 = a_range
 
-	theta = np.linspace(theta1, theta2, 1000)
+	theta = np.linspace(theta1, theta2, 360*int(mp.evaluate(expr.replace("theta", f"({theta2})").replace("a", f"({str(a2)})"))))
 	a = np.linspace(a1, a2, int(a2-a1)+1)
 
 	frames = []
 	for a_val in a:
-		r = func(theta, a_val)
+		a_expr = re.sub("a$", f"({str(a_val)})", expr) # use a better regex so it only matches the variable a
+		r = mp.evaluate(a_expr, ("theta", theta))
 
 		curve = ax.plot(r, theta)
 		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")

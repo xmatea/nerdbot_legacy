@@ -18,7 +18,7 @@ class Math(commands.Cog):
     @commands.command()
     async def plot(self, ctx, expression: str, *, args):
         argument_flags = ('-range', '-rt')
-        bool_flags = {'-rt': False, '-polar': False}
+        bool_flags = {'-rt': False, '-polar': False, '-anim': False}
 
         mp = MathParser()
 
@@ -40,12 +40,29 @@ class Math(commands.Cog):
 
 
         if bool_flags['-polar']:
-            buf = graphing.static_polar(expression, ranges['theta'])
-        else:
-            buf = graphing.static_cartesian(expression, ranges['x'])
+            if bool_flags['-anim']:
+                buf = graphing.animated_polar(expression, ranges['theta'], ranges['a'])
+                buf.seek(0)
 
-        buf.seek(0)
-        await ctx.send(file=discord.File(buf, "image.png"))
+                await ctx.send(file=discord.File(buf, "anim.gif"))
+            else:
+                buf = graphing.static_polar(expression, ranges['theta'])
+                buf.seek(0)
+            
+                await ctx.send(file=discord.File(buf, "image.png"))
+        else:
+            if bool_flags['-anim']:
+                buf = graphing.animated_cartesian(expression, ranges['x'], ranges['a'])
+                buf.seek(0)
+
+                await ctx.send(file=discord.File(buf, "anim.gif"))
+            else:
+                buf = graphing.static_cartesian(expression, ranges['x'])
+                buf.seek(0)
+
+                await ctx.send(file=discord.File(buf, "image.png"))
+
+        
 
 
 def setup(bot):
