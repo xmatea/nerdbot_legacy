@@ -30,16 +30,16 @@ class Math(commands.Cog):
         ranges = {}
         if '-range' in args.keys():
             for rang in args['-range']:
-                r = re.match('[a-zA-Z]=\[\d+\.?\d*,\d+\.?\d*]', rang)
+                r = re.match('[a-zA-Z]=\[-?\d+\.?\d*,-?\d+\.?\d*\]', rang)
                 if r:
-                    min, max = re.findall('\d+\.?\d*', rang)
-                    ranges.update({rang[0]: (min, max)})
+                    rmin, rmax = map(int, re.findall('-?\d+\.?\d*', rang))
+                    ranges.update({rang[0]: (rmin, rmax)})
 
 
-        func = lambda x: x**2+y
         buf = graphing.static_cartesian(expression, ranges['x'])
         buf.seek(0)
-        await ctx.send(file=discord.File(buf, "anim.gif"))
+
+        await ctx.send(file=discord.File(buf, "image.png"))
 
     @commands.command()
     async def polar_(self, ctx, expression: str, x_min: int, x_max: int, y_min: int, y_max: int):
