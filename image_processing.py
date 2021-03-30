@@ -104,7 +104,6 @@ def generate_palette(img: Image, n_colours:int = 5) -> io.BytesIO:
 
 	points = [point for index, point in img.getcolors(prod(img.size))]
 	clusters = get_clusters(points)
-	clusters.sort(key=lambda c: len(c.points), reverse=True)
 
 	palette_colours = [tuple(map(int, c.center)) for c in clusters]
 

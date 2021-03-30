@@ -7,8 +7,8 @@ import requests
 from io import BytesIO
 import numpy
 import html_module
-import bf
 import image_processing
+import random
 
 
 config = readjson('config.json')
@@ -50,6 +50,21 @@ class Coding(commands.Cog):
         palette.seek(0)
 
         await ctx.send(file=discord.File(palette, "palette.png"))
+
+
+    @img_to_colour.command(aliases=["-r"])
+    async def random(self, ctx):
+        url = ctx.message.attachments[0].url
+        img = Image.open(requests.get(url, stream=True).raw).convert('RGB')
+
+        rgb = random.choice(list(zip(*(iter(numpy.array(img.convert('RGB')).flatten().tolist()),) * 3)))
+        hx = '%02x%02x%02x' % rgb
+
+        embed = discord.Embed(title="Random colour", colour=colour_convert(hx), description="Image mean colour value:")
+        embed.add_field(name="HEX", value=hx)
+        embed.add_field(name="RGB", value=f"({rgb[0]}, {rgb[1]}, {rgb[2]})")
+        embed.add_field(name="Integer", value=colour_convert(hx))
+        await ctx.send(content="", embed=embed)
 
 
     @commands.command()
