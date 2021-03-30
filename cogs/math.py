@@ -20,6 +20,8 @@ class Math(commands.Cog):
         argument_flags = ('-range', '-rt')
         bool_flags = {'-rt': False, '-polar': False}
 
+        mp = MathParser()
+
         for flag in bool_flags.keys():
             if flag in args:
                 bool_flags[flag] = True
@@ -34,13 +36,13 @@ class Math(commands.Cog):
                 raise commands.UserInputError()
 
             for m in matches:
-                ranges.update({m[0]: (m[1], m[2]) })
+                ranges.update({m[0]: (mp.evaluate(m[1]), mp.evaluate(m[2])) })
 
 
         if bool_flags['-polar']:
             buf = graphing.static_polar(expression, ranges['theta'])
         else:
-            buf = graphing.static_cartesian(expression, (0, 10))
+            buf = graphing.static_cartesian(expression, ranges['x'])
 
         buf.seek(0)
         await ctx.send(file=discord.File(buf, "image.png"))

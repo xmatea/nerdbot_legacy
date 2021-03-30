@@ -45,7 +45,7 @@ class Coding(commands.Cog):
         url = ctx.message.attachments[0].url
         img = Image.open(requests.get(url, stream=True).raw).convert('RGB')
 
-        palette = colouring.generate_palette(img)
+        palette = image_processing.generate_palette(img)
         palette.seek(0)
 
         await ctx.send(file=discord.File(palette, "palette.png"))
