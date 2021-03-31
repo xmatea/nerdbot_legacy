@@ -16,6 +16,13 @@ class Math(commands.Cog):
         self.name = 'Math'
 
     @commands.command()
+    async def calculate(self, ctx, *, expr):
+        mp = MathParser()
+        res = mp.evaluate(expr)
+
+        await ctx.send(content="", embed= discord.Embed(title=f"`{expr} = {res}`"))
+
+    @commands.command()
     async def plot(self, ctx, expression: str, *, args):
         argument_flags = ('-range', '-rt')
         bool_flags = {'-rt': False, '-polar': False, '-anim': False}
@@ -31,13 +38,12 @@ class Math(commands.Cog):
         ranges = {}
 
         if '-range' in args.keys():
-            matches = re.findall('([a-zA-Z]+)=\[([^,\[\]].*?),([^,\[\]].*?)\]', args['-range'])
+            matches = re.findall('([a-zA-Z]+)=\[([^,\[\]]*),([^,\[\]]*)\]', args['-range'])
             if not matches:
                 raise commands.UserInputError()
 
             for m in matches:
                 ranges.update({m[0]: (mp.evaluate(m[1]), mp.evaluate(m[2])) })
-
 
         if bool_flags['-polar']:
             if bool_flags['-anim']:

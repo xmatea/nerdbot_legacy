@@ -87,6 +87,7 @@ def static_polar(expr: str, theta_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
 
 	ax.grid(True, which="both")
+	mp = MathParser()
 
 	mp = MathParser()
 
@@ -180,7 +181,7 @@ def static_surface_rotate(func: Callable[[np.ndarray, np.ndarray], np.ndarray], 
 	frames = []
 	for a in range(0, 360, 6):
 		ax.view_init(30, a)
-		
+
 		_buf = io.BytesIO()
 		plt.savefig(_buf, format="png")
 		frames.append(_buf)
