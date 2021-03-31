@@ -6,7 +6,6 @@ import os
 from datetime import date, datetime
 import process
 import logging
-from cogwatch import Watcher
 
 # load and read configurations
 load_dotenv()
@@ -40,7 +39,5 @@ for file in os.listdir("cogs"):
 async def on_ready():
     await bot.change_presence(activity=discord.Game("nerding"))
     print("Nerdbot started at {0}\nLoaded {1} cog(s) and commands: {2}".format(datetime.now().strftime("%H:%M:%S"), len(bot.cogs), bot.command_prefix))
-    watcher = Watcher(bot, path='cogs')
-    await watcher.start()
 
 bot.run(TOKEN)
