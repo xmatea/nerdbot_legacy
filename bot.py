@@ -16,7 +16,7 @@ Config = process.readjson('config.json')
 logging.basicConfig(level=logging.INFO)
 prefix = Config.prefix
 
-if DEV:
+if DEV == 'True':
     prefix = os.getenv("PREFIX")
 
 # define NerdBot class

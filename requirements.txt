@@ -25,11 +25,7 @@ requests==2.25.1
 six==1.15.0
 tqdm==4.59.0
 typing-extensions==3.7.4.3
-<<<<<<< Updated upstream
-yarl==1.6.3
-=======
 urllib3==1.26.4
 watchgod==0.7
 websockets==8.1
 yarl==1.6.3
->>>>>>> Stashed changes
