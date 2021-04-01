@@ -1,6 +1,7 @@
 import io
 import random
 from math import sqrt, prod
+from numpy import prod
 from types import SimpleNamespace
 from process import colour_convert
 from functools import reduce
@@ -100,7 +101,7 @@ def generate_palette(img: Image, n_colours:int = 5) -> io.BytesIO:
 		img.paste(img2, (img1.width, 0))
 
 		return img
-	
+
 
 	points = [point for index, point in img.getcolors(prod(img.size))]
 	clusters = get_clusters(points)
