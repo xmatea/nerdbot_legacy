@@ -75,9 +75,15 @@ class QueueItem:
 class Queue: # make async
 	def __init__(self):
 		self._items = []
-		self.songs = lambda: [item.song for item in self._items]
+		self.ctx = None
+
 		self.current_song_started = datetime.now()
 		self.playing_duration = 0
+
+		self.songs = lambda: [item.song for item in self._items]
+		self.skip = lambda: self.play_next() if len(self._items) else self.ctx.voice_client.stop()
+		self.pause = lambda: self.ctx.voice_client.pause() if self.ctx is not None else print("Nothing to pause")
+		self.resume = lambda: self.ctx.voice_client.resume() if self.ctx is not None else print("Nothing to resume")
 
 
 	def add(self, url, ctx):
@@ -98,12 +104,12 @@ class Queue: # make async
 		timer.start()
 
 
-	def skip(self):
-		pass
-
-
 	def play_next(self):
-		song, ctx, _ = self._items.pop(0)
+		song, self.ctx, timer = self._items.pop(0)
+
+		if timer.is_alive():
+			timer.cancel()
+
 		self.current_song_started = datetime.now()
 		self.playing_duration = song.duration
 
@@ -113,8 +119,10 @@ class Queue: # make async
 
 		audio_source = FFmpegPCMAudio(buf.read(), pipe=True)
 		
-		if not ctx.voice_client.is_playing():
-			ctx.voice_client.play(audio_source, after=None)
+		if self.ctx.voice_client.is_playing():
+			self.ctx.voice_client.stop()
+		
+		self.ctx.voice_client.play(audio_source, after=None)
 
 
 class Voice(commands.Cog):
@@ -127,13 +135,27 @@ class Voice(commands.Cog):
 
 	@commands.command()
 	async def join(self, ctx, *args):
-		channel = ctx.author.voice.channel
-		await channel.connect()
+		await ctx.author.voice.channel.connect()
 
 
 	@commands.command()
 	async def leave(self, ctx, *args):
 		await ctx.voice_client.disconnect()
+
+
+	@commands.command()
+	async def skip(self, ctx):
+		self.queue.skip()
+
+
+	@commands.command()
+	async def pause(self, ctx):
+		self.queue.pause()
+
+
+	@commands.command()
+	async def resume(self, ctx):
+		self.queue.resume()
 
 
 	@commands.command()
