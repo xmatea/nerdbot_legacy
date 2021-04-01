@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import datetime
 from process import readjson
+from mongo import db as mongo
+db = mongo.db
 
 speech = readjson('speech.json')
 config = readjson('config.json')
@@ -9,6 +11,20 @@ config = readjson('config.json')
 class EventHandler(commands.Cog):
     def __init__(self, bot):
         self.hidden = True
+        self.bot = bot
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        mongo.insert(guild, mongo.guildModel, db.guilds)
+        channel = self.bot.get_guild(config.home_guild).get_channel(config.log_channel)
+        await channel.send(embed=discord.Embed(title="Joined new server!", description=f"**Name:** {guild.name}\n**Size:** {guild.member_count} members\nCurrently in {len(self.bot.guilds)} servers!"))
+
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        mongo.remove({"_id": guild.id}, db.guilds)
+        channel = self.bot.get_guild(config.home_guild).get_channel(config.log_channel)
+        await channel.send(embed=discord.Embed(title="Left a server!", description=f"**Name:** {guild.name}\n**Size:** {guild.member_count} members\nCurrently in {len(self.bot.guilds)} servers!"))
+
 
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):

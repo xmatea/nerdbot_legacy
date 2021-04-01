@@ -1,5 +1,5 @@
 {
   "prefix": "nerdbot ",
-  "test_guild_id": 812866133652144198,
-  "test_channel_id": 825703239948566559
+  "home_guild": 812866133652144198,
+  "log_channel": 826956624819650560
 }
