@@ -39,5 +39,8 @@ for file in os.listdir("cogs"):
 async def on_ready():
     await bot.change_presence(activity=discord.Game("nerding"))
     print("Nerdbot started at {0}\nLoaded {1} cog(s) and commands: {2}".format(datetime.now().strftime("%H:%M:%S"), len(bot.cogs), bot.command_prefix))
+    if not DEV:
+        channel = bot.get_guild(Config.home_guild).get_channel(Config.log_channel)
+        await channel.send(embed=discord.Embed(title="Nerdbot ready!", timestamp=datetime.now()))
 
 bot.run(TOKEN)
