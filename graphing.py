@@ -92,7 +92,7 @@ def static_polar(expr: str, theta_range: Tuple[float, float]) -> io.BytesIO:
 	mp = MathParser()
 
 	theta1, theta2 = theta_range
-	theta = np.linspace(theta1, theta2, 360*int(mp.evaluate(expr.replace("theta", f"({theta2})"))))
+	theta = np.linspace(theta1, theta2, 36000)
 
 	r = mp.evaluate(expr, ("theta", theta))
 
