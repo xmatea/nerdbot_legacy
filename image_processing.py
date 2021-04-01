@@ -1,6 +1,6 @@
 import io
 import random
-from math import sqrt, prod
+from math import sqrt
 from numpy import prod
 from types import SimpleNamespace
 from process import colour_convert
