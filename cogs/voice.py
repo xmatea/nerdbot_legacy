@@ -9,6 +9,7 @@ import shlex
 from discord.opus import Encoder
 import threading
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 
 config = process.readjson('config.json')
 
@@ -53,8 +54,9 @@ class FFmpegPCMAudio(discord.AudioSource):
 # =============================================================================================================
 
 class Song:
-	def __init__(self, url, duration):
-		self.duration = duration
+	def __init__(self, url, yt):
+		self.duration = yt.length
+		self.title = yt.title
 		self.url = url
 
 	def to_buffer(self, buf):
@@ -78,8 +80,9 @@ class Queue: # make async
 		self.ctx = None
 		self.is_paused = False
 
+		self.current_song = SimpleNamespace(duration=0, title=None, url=None)
 		self.current_song_started = datetime.now()
-		self.playing_duration = 0
+		self.song_time_left = lambda: timedelta(seconds=self.current_song.duration) - (datetime.now() - self.current_song_started)
 
 		self.songs = lambda: [item.song for item in self._items]
 		self.skip = lambda: self.play_next() if len(self._items) else self.ctx.voice_client.stop()
@@ -88,12 +91,10 @@ class Queue: # make async
 	def add(self, url, ctx):
 		yt = YouTube(url)
 
-		song = Song(url, yt.length)
+		song = Song(url, yt)
 
 		total_songs_duration = sum([s.duration for s in self.songs()])
-		time_since_start = (datetime.now() - self.current_song_started).total_seconds()
-		delay = timedelta(seconds=self.playing_duration) - timedelta(seconds=time_since_start)
-		delay = delay + timedelta(seconds=total_songs_duration)
+		delay = self.song_time_left() + timedelta(seconds=total_songs_duration)
 		delay = delay.total_seconds()
 		timer = threading.Timer(delay, self.play_next)
 
@@ -104,16 +105,15 @@ class Queue: # make async
 
 
 	def play_next(self):
-		song, self.ctx, timer = self._items.pop(0)
+		self.current_song, self.ctx, timer = self._items.pop(0)
 
 		if timer.is_alive():
 			timer.cancel()
 
 		self.current_song_started = datetime.now()
-		self.playing_duration = song.duration
 
 		buf = io.BytesIO()
-		song.to_buffer(buf)
+		self.current_song.to_buffer(buf)
 		buf.seek(0)
 
 		audio_source = FFmpegPCMAudio(buf.read(), pipe=True)
@@ -141,6 +141,13 @@ class Queue: # make async
 
 		else:
 			print("Nothing to resume")
+
+
+	def get_queue_songs(self):
+		songs = self.songs()
+		songs.insert(0, self.current_song)
+		return songs
+
 
 
 class Voice(commands.Cog):
@@ -188,6 +195,13 @@ class Voice(commands.Cog):
 				raise commands.BadArgument
 			
 		self.queue.add(url, ctx)
+
+
+	@commands.command()
+	async def queue(self, ctx):
+		queue_songs = self.queue.get_queue_songs()
+
+		await ctx.send("\n".join([song.title for song in queue_songs]))
 
 
 def setup(bot):
