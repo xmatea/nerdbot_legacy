@@ -11,17 +11,54 @@
     "Morgan + Matea = Best couple hehe <3"
 
   ],
-  "usage" : {
-    "img_to_colour": "Run `{0}img_to_colour` with your desired image as an attachment.",
-    "plot": "Run `{0}plot` to plot a mathematical expression.\n **Flags:**\n`-range`: Defaults to [-10,10]. Specify a range for your variables. \n\tExample: `{0}plot x^2+y -range x=[-5,5] y=[-2.5,2.5]`\n`-rt`: Defaults to false. Set the surface plot to rotate. \n`-polar` Defaults to false. Plots the graph in polar coordinates. Use theta instead of x. Default range is [0,2*pi]"
+  "help": {
+    "colour_from_img": "Get the average or a random colour from the attached image. Run the command and attach an image in the same message.\nExample: `{0}colour_from_img -r`",
+    "palette": "Generates a colour palette from the attached image. Run the command and attach an image in the same message.",
+    "html_to_img": "Renders html and returns it as a png!\nExample: `{0}html_to_img <p>Hello world</p`>",
+    "say": "I can pass on any message for you.\nExample: `{0} say shut up`",
+    "embed": "I can embed a message to make it look fancy. Title and colours have to be specified after the text.\nExample: `{0} embed uhhhh -t Breaking news -c 00000000`",
+    "bestperson": "Who's the best person in the world, you ask?",
+    "fact": "List of facts.",
+    "plot": "Plots a mathematical expression. \nExample: `{0}plot x^2+y -range x=[-5, 5] y=[-2.5, 2.5]`",
+    "calculate": "I'm quite the calculator myself. Don't really like spaces tho.\nExample: `{0} calculate 69^69`",
+    "join": "Join voice chat.",
+    "leave": "Leave voice chat.",
+    "play": "Plays a song in voice chat.",
+    "pause": "Pauses currently playing song in voice chat.",
+    "resume": "Resumes currently paused song in voice chat.",
+    "skip": "Skips currently playing song in voice chat."
   },
 
   "brief": {
-    "img_to_colour": "Generates a colour palette from an image.",
-    "plot": "Plots a mathematical expression"
+    "colour_from_img": "Get the average or a random colour from the attached image.",
+    "palette": "Generates a colour palette from the attached image.",
+    "html_to_img": "Renders html and returns it as a png!",
+    "say": "Trying to win an argument? I can settle it for you, have me pass on the message.",
+    "embed": "Feeling fancy? I'll embed a message for you.",
+    "bestperson": "What's the name of the best person?",
+    "fact": "Hard facts.",
+    "plot": "Plots a mathematical expression",
+    "calculate": "I guess you can say I am quite the calculator.",
+    "join": "Join voice chat.",
+    "leave": "Leave voice chat.",
+    "play": "Plays a song in voice chat.",
+    "pause": "Pauses currently playing song in voice chat.",
+    "resume": "Resumes currently paused song in voice chat.",
+    "skip": "Skips currently playing song in voice chat."
   },
 
-  "help": {
-    "plot": "Plots a mathematical expression"
+  "flags": {
+    "plot": {
+      "range": "Defaults to [-10,10]. Specify a range for your variables. Format: variable=[min, max]",
+      "polar": "Defaults to false. Plots the graph in polar coordinates. Use theta instead of x. Default range is [0,2*pi]"
+    },
+    "embed": {
+      "t": "Defaults to none. Set a title for your embed.",
+      "c": "Defaults to black. Set a colour for your embed. Supports hexadecimal and integer colour values."
+    },
+    "colour_from_img": {
+      "m": "Calculates the mean value of the image",
+      "r": "Gets a the random colour from an image"
+    }
   }
 }

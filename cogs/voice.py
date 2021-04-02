@@ -11,10 +11,11 @@ import threading
 from datetime import datetime, timedelta
 
 config = process.readjson('config.json')
+speech = process.readjson('speech.json')
 
 # better FFmpegPCMAudio class; thanks https://github.com/Armster15 <3 =========================================
 class FFmpegPCMAudio(discord.AudioSource):
-	
+
 	def __init__(self, source, *, executable='ffmpeg', pipe=False, stderr=None, before_options=None, options=None):
 		stdin = None if not pipe else source
 		args = [executable]
@@ -117,10 +118,10 @@ class Queue: # make async
 		buf.seek(0)
 
 		audio_source = FFmpegPCMAudio(buf.read(), pipe=True)
-		
+
 		if self.ctx.voice_client.is_playing():
 			self.ctx.voice_client.stop()
-		
+
 		self.ctx.voice_client.play(audio_source, after=None)
 		self.is_paused = False
 
@@ -151,32 +152,32 @@ class Voice(commands.Cog):
 		self.queue = Queue()
 
 
-	@commands.command()
+	@commands.command(help=speech.help.join, brief=speech.brief.join)
 	async def join(self, ctx, *args):
 		await ctx.author.voice.channel.connect()
 
 
-	@commands.command()
+	@commands.command(help=speech.help.leave, brief=speech.brief.leave)
 	async def leave(self, ctx, *args):
 		await ctx.voice_client.disconnect()
 
 
-	@commands.command()
+	@commands.command(help=speech.help.skip, brief=speech.brief.skip)
 	async def skip(self, ctx):
 		self.queue.skip()
 
 
-	@commands.command()
+	@commands.command(help=speech.help.pause, brief=speech.brief.pause)
 	async def pause(self, ctx):
 		self.queue.pause()
 
 
-	@commands.command()
+	@commands.command(help=speech.help.resume, brief=speech.brief.resume)
 	async def resume(self, ctx):
 		self.queue.resume()
 
 
-	@commands.command()
+	@commands.command(help=speech.help.play, brief=speech.brief.play)
 	async def play(self, ctx, url=None):
 		if not ctx.voice_client:
 			await ctx.author.voice.channel.connect()
@@ -186,7 +187,7 @@ class Voice(commands.Cog):
 				self.queue.resume()
 			else:
 				raise commands.BadArgument
-			
+
 		self.queue.add(url, ctx)
 
 

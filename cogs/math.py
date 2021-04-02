@@ -8,6 +8,7 @@ import flagparser
 from mathparser import MathParser
 
 config = process.readjson('config.json')
+speech = process.readjson('speech.json')
 
 class Math(commands.Cog):
     def __init__(self, bot):
@@ -15,14 +16,14 @@ class Math(commands.Cog):
         self.hidden = False
         self.name = 'Math'
 
-    @commands.command()
+    @commands.command(help=speech.help.calculate, brief=speech.brief.calculate)
     async def calculate(self, ctx, *, expr):
         mp = MathParser()
         res = mp.evaluate(expr)
 
         await ctx.send(content="", embed= discord.Embed(title=f"`{expr} = {res}`"))
 
-    @commands.command()
+    @commands.command(help=speech.help.plot, brief=speech.brief.plot)
     async def plot(self, ctx, expression: str, *, args):
         argument_flags = ('-range', '-rt')
         bool_flags = {'-rt': False, '-polar': False, '-anim': False}
@@ -54,7 +55,7 @@ class Math(commands.Cog):
             else:
                 buf = graphing.static_polar(expression, ranges['theta'])
                 buf.seek(0)
-            
+
                 await ctx.send(file=discord.File(buf, "image.png"))
         else:
             if bool_flags['-anim']:
@@ -68,7 +69,7 @@ class Math(commands.Cog):
 
                 await ctx.send(file=discord.File(buf, "image.png"))
 
-        
+
 
 
 def setup(bot):

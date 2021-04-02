@@ -21,8 +21,23 @@ class Coding(commands.Cog):
         self.hidden = False
         self.name = 'Coding'
 
-    @commands.group(aliases=["img_to_color"])
-    async def img_to_colour(self, ctx):
+    @commands.command(help=speech.help.palette, brief=speech.brief.palette)
+    async def palette(self, ctx):
+        url = ctx.message.attachments[0].url
+        img = Image.open(requests.get(url, stream=True).raw).convert('RGB')
+
+        palette = image_processing.generate_palette(img)
+        palette.seek(0)
+
+        await ctx.send(file=discord.File(palette, "palette.png"))
+
+    @commands.group(help=speech.help.colour_from_img, brief=speech.brief.colour_from_img, aliases=["color_from_img"])
+    async def colour_from_img(self, ctx):
+        if ctx.invoked_subcommand is None:
+            raise commands.UserInputError()
+
+    @colour_from_img.command(aliases=["-m"])
+    async def mean(self, ctx):
         if not ctx.message.attachments:
             raise commands.UserInputError()
 
@@ -41,18 +56,7 @@ class Coding(commands.Cog):
             await ctx.send(content="", embed=embed)
 
 
-    @img_to_colour.command(aliases=["-p"])
-    async def palette(self, ctx):
-        url = ctx.message.attachments[0].url
-        img = Image.open(requests.get(url, stream=True).raw).convert('RGB')
-
-        palette = image_processing.generate_palette(img)
-        palette.seek(0)
-
-        await ctx.send(file=discord.File(palette, "palette.png"))
-
-
-    @img_to_colour.command(aliases=["-r"])
+    @colour_from_img.command(aliases=["-r"])
     async def random(self, ctx):
         url = ctx.message.attachments[0].url
         img = Image.open(requests.get(url, stream=True).raw).convert('RGB')
@@ -67,7 +71,7 @@ class Coding(commands.Cog):
         await ctx.send(content="", embed=embed)
 
 
-    @commands.command()
+    @commands.command(help=speech.help.html_to_img, brief=speech.brief.html_to_img)
     async def html_to_img(self, ctx, *, html=None):
         if html is None:
             if not ctx.message.attachments:

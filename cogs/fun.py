@@ -15,7 +15,7 @@ class Fun(commands.Cog):
         self.hidden = False
         self.name = 'Fun'
 
-    @commands.command()
+    @commands.command(help=speech.help.say, brief=speech.brief.say)
     async def say(self, ctx, *, args):
         if not args:
             raise UserInputError
@@ -23,7 +23,7 @@ class Fun(commands.Cog):
         await ctx.send(args)
         await ctx.message.delete()
 
-    @commands.command()
+    @commands.command(help=speech.help.embed, brief=speech.brief.embed)
     async def embed(self, ctx, *, args):
         if not args:
             raise UserInputError
