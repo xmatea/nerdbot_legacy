@@ -5,7 +5,7 @@ import random
 import graphing
 import re
 import flagparser
-from mathparser import MathParser
+import mathparser as mp
 
 config = process.readjson('config.json')
 speech = process.readjson('speech.json')
@@ -16,19 +16,26 @@ class Math(commands.Cog):
         self.hidden = False
         self.name = 'Math'
 
+<<<<<<< HEAD
     @commands.command(help=speech.help.calculate, brief=speech.brief.calculate)
+=======
+
+    @commands.command()
+>>>>>>> 14f565eb8427e418a7b5b08ac5e511c9c1638989
     async def calculate(self, ctx, *, expr):
-        mp = MathParser()
         res = mp.evaluate(expr)
 
         await ctx.send(content="", embed= discord.Embed(title=f"`{expr} = {res}`"))
 
+<<<<<<< HEAD
     @commands.command(help=speech.help.plot, brief=speech.brief.plot)
+=======
+
+    @commands.command()
+>>>>>>> 14f565eb8427e418a7b5b08ac5e511c9c1638989
     async def plot(self, ctx, expression: str, *, args):
         argument_flags = ('-range', '-rt')
-        bool_flags = {'-rt': False, '-polar': False, '-anim': False}
-
-        mp = MathParser()
+        bool_flags = {'-rt': False, '-polar': False, '-surface': False, '-anim': False}
 
         for flag in bool_flags.keys():
             if flag in args:
@@ -57,6 +64,29 @@ class Math(commands.Cog):
                 buf.seek(0)
 
                 await ctx.send(file=discord.File(buf, "image.png"))
+
+        elif bool_flags['-surface']:
+            if bool_flags['-anim'] and bool_flags['-rt']:
+                buf = graphing.animated_surface_rotate(expression, ranges['x'], ranges['y'], ranges['a'])
+                buf.seek(0)
+
+                await ctx.send(file=discord.File(buf, "anim.gif"))
+            elif bool_flags['-anim']:
+                buf = graphing.animated_surface(expression, ranges['x'], ranges['y'], ranges['a'])
+                buf.seek(0)
+
+                await ctx.send(file=discord.File(buf, "anim.gif"))
+            elif bool_flags['-rt']:
+                buf = graphing.static_surface_rotate(expression, ranges['x'], ranges['y'])
+                buf.seek(0)
+
+                await ctx.send(file=discord.File(buf, "anim.gif"))
+            else:
+                buf = graphing.static_surface(expression, ranges['x'], ranges['y'])
+                buf.seek(0)
+
+                await ctx.send(file=discord.File(buf, "image.png"))
+
         else:
             if bool_flags['-anim']:
                 buf = graphing.animated_cartesian(expression, ranges['x'], ranges['a'])
@@ -69,8 +99,12 @@ class Math(commands.Cog):
 
                 await ctx.send(file=discord.File(buf, "image.png"))
 
+<<<<<<< HEAD
 
 
 
+=======
+        
+>>>>>>> 14f565eb8427e418a7b5b08ac5e511c9c1638989
 def setup(bot):
     bot.add_cog(Math(bot))
