@@ -1,63 +1,73 @@
-import pyparsing as pp
-from plusminus import ArithmeticParser
-from typing import Union, Tuple, List
-from numpy import ndarray
-import math
+import cexprtk
+import numpy as np
 
-class MathParser(ArithmeticParser):
-	def customize(self):
-		super().customize()
+class Expression(cexprtk.Expression):
+	def __init__(self, *args, **kwargs):
+		super().__init__(*args, **kwargs)
 
-		golden_ratio = (1.0 + math.sqrt(5)) / 2.0
+	def value(self, *args, **kwargs):
+		v = round(super().value(*args, **kwargs), 8)
 
-		self.initialize_variable("pi", math.pi)
-		self.initialize_variable("e", math.e)
-		self.initialize_variable("phi", golden_ratio)
-		self.initialize_variable("golden_ratio", golden_ratio)
+		try:
+			v = int(v) if v == int(v) else v
+		except OverflowError:
+			pass
 
-		self.add_function("sin", 1, math.sin)
-		self.add_function("cos", 1, math.cos)
-		self.add_function("tan", 1, math.tan)
-		self.add_function("asin", 1, math.asin)
-		self.add_function("acos", 1, math.acos)
-		self.add_function("atan", 1, math.atan)
-		self.add_function("sinh", 1, math.sinh)
-		self.add_function("cosh", 1, math.cosh)
-		self.add_function("tanh", 1, math.tanh)
-
-		self.add_function("ln", 1, lambda x: math.log(x))
-		self.add_function("log", (1, 2), math.log)
-
-		# avoid clash with '!=' operator
-		factorial_operator = (~pp.Literal("!=") + "!").setName("!")
-		self.add_operator(
-			factorial_operator, 1, ArithmeticParser.LEFT, self.factorial
-		)
-		self.add_operator("^", 2, ArithmeticParser.LEFT, lambda x, y: math.pow(x, y))
+		return v if v else 0
 
 
-	def factorial(self, x: Union[int, float]) -> Union[int, float]:
-		if x < 0:
-			raise ValueError("value must be greater than or equal to 0.")
+def evaluate(expr, vars={}):
+	st = cexprtk.Symbol_Table(vars, add_constants=True)
+	expr = Expression(expr, st)
 
-		else:
-			if isinstance(x, int):
-				return math.factorial(x)
-			elif isinstance(x, float):
-				return math.gamma(x+1)
-			else:
-				raise TypeError("value must be numerical.")
+	return expr.value()
 
 
-	def evaluate(self, expr: str, *values: Union[Tuple[str, List], Tuple[str, float]]) -> Union[float, List]:
-		if len(values) == 0:
-			return super().evaluate(expr)
+def eval_2d(expr, vars, polar=False):
+	var = "theta" if polar else "x"
 
-		else: # MAKE IT WORK WITH MULTIPLE UNKNOWNS
-			return [self.evaluate(expr.replace(values[0][0], str(values[0][1][i]) if values[0][1][i] >= 0 else f"({values[0][1][i]})")) for i in range(len(values[0][1]))]
+	if "a" in vars.keys():
+		st = cexprtk.Symbol_Table({"a": vars["a"], var: 1}, add_constants=True)
+	else:
+		st = cexprtk.Symbol_Table({var: 1}, add_constants=True)
+
+	expr = Expression(expr, st)
+
+	values = []
+	for val in vars[var]:
+
+		st.variables[var] = val
+		values.append(expr.value())
+
+	return values
+
+
+def eval_3d(expr, vars):
+	if "a" in vars.keys():
+		st = cexprtk.Symbol_Table({"a": vars["a"], "x": 1, "y": 1}, add_constants=True)
+	else:
+		st = cexprtk.Symbol_Table({"x": 1, "y": 1}, add_constants=True)
+
+	expr = Expression(expr, st)
+
+	x_values = vars["x"].tolist()
+	y_values = vars["y"].tolist()
+
+	values = []
+	for x_val in x_values:
+
+		vals = []
+		for y_val in y_values:
+
+			st.variables["x"] = x_val
+			st.variables["y"] = y_val
+
+			vals.append(expr.value())
+
+		values.append(vals)
+
+	return values
 
 
 if __name__ == "__main__":
-	mp = MathParser()
-
-	print(mp.evaluate(""))
+	print(evaluate(input(">> ")))

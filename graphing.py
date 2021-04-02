@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, List, Tuple
 from PIL import Image
-from mathparser import MathParser
+import mathparser as mp
 import re
 
 # plot equation on cartesian graph and return png byte array
@@ -21,10 +21,9 @@ def static_cartesian(expr: str, x_range: Tuple[float, float]) -> io.BytesIO:
 	ax.xaxis.tick_bottom()
 
 	x1, x2 = x_range
-	mp = MathParser()
 
 	x = np.linspace(x1, x2, 10*int(x2-x1))
-	y = mp.evaluate(expr, ("x", x))
+	y = mp.eval_2d(expr, {"x": x})
 
 	ax.plot(x, y)
 	fig.text(0.02, 0.92, f"y = {expr}", fontsize=16)
@@ -55,16 +54,15 @@ def animated_cartesian(expr: str, x_range: Tuple[float, float], a_range: Tuple[f
 	x = np.linspace(x1, x2, 10*int(x2-x1))
 	a = np.linspace(a1, a2, int(a2-a1)+1)
 
-	mp = MathParser()
 
 	plt.xlim(x1, x2)
-	plt.ylim(min(0, mp.evaluate(expr.replace("x", f"({str(x1)})").replace("a", f"({str(a2)})")), mp.evaluate(expr.replace("x", f"({str(x2)})").replace("a", f"({str(a2)})"))))
+	plt.ylim(min(0, mp.evaluate(expr, {"x": x1, "a": a2})), mp.evaluate(expr, {"x": x2, "a": a2}))
 
 	plt.autoscale(False)
 
 	frames = []
 	for a_val in a:
-		y = mp.evaluate(expr.replace("a", f"({str(a_val)})"), ("x", x)) # use a regex so it only matches the variable a
+		y = mp.eval_2d(expr, {"a": a_val, "x": x})
 
 		curve = ax.plot(x, y)
 		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
@@ -87,14 +85,11 @@ def static_polar(expr: str, theta_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "polar"})
 
 	ax.grid(True, which="both")
-	mp = MathParser()
-
-	mp = MathParser()
 
 	theta1, theta2 = theta_range
 	theta = np.linspace(theta1, theta2, 36000)
 
-	r = mp.evaluate(expr, ("theta", theta))
+	r = mp.eval_2d(expr, {"theta": theta}, polar=True)
 
 	ax.plot(r, theta)
 	fig.text(0.02, 0.92, f"r = {expr}", fontsize=16)
@@ -111,18 +106,15 @@ def animated_polar(expr: str, theta_range: Tuple[float, float], a_range: Tuple[f
 
 	ax.grid(True, which="both")
 
-	mp = MathParser()
-
 	theta1, theta2 = theta_range
 	a1, a2 = a_range
 
-	theta = np.linspace(theta1, theta2, 360*int(mp.evaluate(expr.replace("theta", f"({theta2})").replace("a", f"({str(a2)})"))))
+	theta = np.linspace(theta1, theta2, 36000)
 	a = np.linspace(a1, a2, int(a2-a1)+1)
 
 	frames = []
 	for a_val in a:
-		a_expr = re.sub("a$", f"({str(a_val)})", expr) # use a better regex so it only matches the variable a
-		r = mp.evaluate(a_expr, ("theta", theta))
+		r = mp.eval_2d(expr, {"a": a_val, "theta": theta}, polar=True)
 
 		curve = ax.plot(r, theta)
 		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
@@ -140,7 +132,7 @@ def animated_polar(expr: str, theta_range: Tuple[float, float], a_range: Tuple[f
 	return buf
 
 
-def static_surface(func: Callable[[np.ndarray, np.ndarray], np.ndarray], x_range: Tuple[float, float], y_range: Tuple[float, float]) -> io.BytesIO:
+def static_surface(expr: str, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 	x1, x2 = x_range
@@ -150,11 +142,13 @@ def static_surface(func: Callable[[np.ndarray, np.ndarray], np.ndarray], x_range
 
 	x = np.linspace(x1, x2, point_count)
 	y = np.linspace(y1, y2, point_count)
-	x, y = np.meshgrid(x, y)
 
-	z = func(x, y)
+	xv, yv = np.meshgrid(x, y)
 
-	ax.plot_surface(x, y, z)
+	z = mp.eval_3d(expr, {"x": x, "y": y})
+	z = np.reshape(z, np.shape(xv))
+
+	ax.plot_surface(xv, yv, z)
 
 	buf = io.BytesIO()
 	plt.savefig(buf, format="png")
@@ -162,7 +156,7 @@ def static_surface(func: Callable[[np.ndarray, np.ndarray], np.ndarray], x_range
 	return buf
 
 
-def static_surface_rotate(func: Callable[[np.ndarray, np.ndarray], np.ndarray], x_range: Tuple[float, float], y_range: Tuple[float, float]) -> io.BytesIO:
+def static_surface_rotate(expr: str, x_range: Tuple[float, float], y_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 	x1, x2 = x_range
@@ -172,14 +166,16 @@ def static_surface_rotate(func: Callable[[np.ndarray, np.ndarray], np.ndarray], 
 
 	x = np.linspace(x1, x2, point_count)
 	y = np.linspace(y1, y2, point_count)
-	x, y = np.meshgrid(x, y)
 
-	z = func(x, y)
+	xv, yv = np.meshgrid(x, y)
 
-	ax.plot_surface(x, y, z)
+	z = mp.eval_3d(expr, {"x": x, "y": y})
+	z = np.reshape(z, np.shape(xv))
+
+	ax.plot_surface(xv, yv, z)
 
 	frames = []
-	for a in range(0, 360, 6):
+	for a in range(0, 360, 18):
 		ax.view_init(30, a)
 
 		_buf = io.BytesIO()
@@ -188,12 +184,12 @@ def static_surface_rotate(func: Callable[[np.ndarray, np.ndarray], np.ndarray], 
 
 	buf = io.BytesIO()
 	frames = [Image.open(frame) for frame in frames]
-	frames[0].save(buf, format="GIF", save_all=True, append_images=frames[1:], duration=150, loop=0)
+	frames[0].save(buf, format="GIF", save_all=True, append_images=frames[1:], duration=200, loop=0)
 
 	return buf
 
 
-def animated_surface(func: Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray], x_range: Tuple[float, float], y_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
+def animated_surface(expr: str, x_range: Tuple[float, float], y_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 	x1, x2 = x_range
@@ -206,17 +202,18 @@ def animated_surface(func: Callable[[np.ndarray, np.ndarray, np.ndarray], np.nda
 	y = np.linspace(y1, y2, point_count)
 	a = np.linspace(a1, a2, int(a2-a1)+1)
 
-	x, y = np.meshgrid(x, y)
+	xv, yv = np.meshgrid(x, y)
 
 	plt.xlim(x1, x2)
 	plt.ylim(y1, y2)
-	ax.set_zlim(min(0, func(x1, y1, a2)), func(x2, y2, a2))
+	ax.set_zlim(min(0, mp.evaluate(expr, {"x": x1, "y": y1, "a": a2})), mp.evaluate(expr, {"x": x2, "y": y2, "a": a2}))
 
 	frames = []
 	for a_val in a:
-		z = func(x, y, a_val)
+		z = mp.eval_3d(expr, {"x": x, "y": y, "a": a_val})
+		z = np.reshape(z, np.shape(xv))
 
-		surface = ax.plot_surface(x, y, z)
+		surface = ax.plot_surface(xv, yv, z)
 		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
 
 		_buf = io.BytesIO()
@@ -232,7 +229,7 @@ def animated_surface(func: Callable[[np.ndarray, np.ndarray, np.ndarray], np.nda
 	return buf
 
 
-def animated_surface_rotate(func: Callable[[np.ndarray, np.ndarray, np.ndarray], np.ndarray], x_range: Tuple[float, float], y_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
+def animated_surface_rotate(expr: str, x_range: Tuple[float, float], y_range: Tuple[float, float], a_range: Tuple[float, float]) -> io.BytesIO:
 	fig, ax = plt.subplots(subplot_kw={"projection": "3d"})
 
 	x1, x2 = x_range
@@ -245,19 +242,20 @@ def animated_surface_rotate(func: Callable[[np.ndarray, np.ndarray, np.ndarray],
 	y = np.linspace(y1, y2, point_count)
 	a = np.linspace(a1, a2, 60)
 
-	x, y = np.meshgrid(x, y)
+	xv, yv = np.meshgrid(x, y)
 
 	plt.xlim(x1, x2)
 	plt.ylim(y1, y2)
-	ax.set_zlim(min(0, func(x1, y1, a2)), func(x2, y2, a2))
+	ax.set_zlim(min(0, mp.evaluate(expr, {"x": x1, "y": y1, "a": a2})), mp.evaluate(expr, {"x": x2, "y": y2, "a": a2}))
 
 	frames = []
-	for angle in range(0, 360, 6):
-		a_val = a[angle//6]
+	for angle in range(0, 360, 18):
+		a_val = a[angle//18]
 
-		z = func(x, y, a_val)
+		z = mp.eval_3d(expr, {"x": x, "y": y, "a": a_val})
+		z = np.reshape(z, np.shape(xv))
 
-		surface = ax.plot_surface(x, y, z)
+		surface = ax.plot_surface(xv, yv, z)
 		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
 
 		ax.view_init(30, angle)
@@ -270,7 +268,7 @@ def animated_surface_rotate(func: Callable[[np.ndarray, np.ndarray, np.ndarray],
 
 	buf = io.BytesIO()
 	frames = [Image.open(frame) for frame in frames]
-	frames[0].save(buf, format="GIF", save_all=True, append_images=frames[1:], duration=250, loop=0)
+	frames[0].save(buf, format="GIF", save_all=True, append_images=frames[1:], duration=300, loop=0)
 
 	return buf
 
@@ -296,7 +294,7 @@ def display_gif(gif: io.BytesIO) -> None:
 
 
 def main() -> None:
-	Image.open(static_cartesian("ln(abs(sin(x^2)))", (-10, 10))).show()
+	display_gif(animated_surface_rotate("a(x+y)", (-10, 10), (-10, 10), (-10, 10)))
 
 
 if __name__ == "__main__":
