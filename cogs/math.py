@@ -16,7 +16,7 @@ class Math(commands.Cog):
         self.name = 'Math'
 
 
-    @commands.command(help=speech.help.calculate, brief=speech.brief.calculate)
+    @commands.command(help=speech.help.calculate, brief=speech.brief.calculate, aliases=['calc','c', 'cal'])
     async def calculate(self, ctx, *, expr):
         res = mp.evaluate(expr)
 
