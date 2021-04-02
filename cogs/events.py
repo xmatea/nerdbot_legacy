@@ -42,7 +42,7 @@ class EventHandler(commands.Cog):
             except:
                 print(f"warning: {ctx.command.name} has no usage description")
 
-            embed = discord.Embed(title=f"Incorrect usage: {ctx.command.name}", description=helpstr)
+            embed = discord.Embed(title=f"Usage guide: {ctx.command.name}", description=helpstr)
             try:
                 flagstr = ""
                 flags = getattr(speech.flags, ctx.command.name)

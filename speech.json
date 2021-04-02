@@ -23,10 +23,11 @@
     "calculate": "I'm quite the calculator myself. Don't really like spaces tho.\nExample: `{0} calculate 69^69`",
     "join": "Join voice chat.",
     "leave": "Leave voice chat.",
-    "play": "Plays a song in voice chat.",
+    "play": "Plays a song in voice chat with a youtube link. \nExample: `{0}play https://www.youtube.com/watch?v=dQw4w9WgXcQ`",
     "pause": "Pauses currently playing song in voice chat.",
     "resume": "Resumes currently paused song in voice chat.",
-    "skip": "Skips currently playing song in voice chat."
+    "skip": "Skips currently playing song in voice chat.",
+    "queue": "Display current playing queue."
   },
 
   "brief": {
@@ -44,7 +45,8 @@
     "play": "Plays a song in voice chat.",
     "pause": "Pauses currently playing song in voice chat.",
     "resume": "Resumes currently paused song in voice chat.",
-    "skip": "Skips currently playing song in voice chat."
+    "skip": "Skips currently playing song in voice chat.",
+    "queue": "Display current playing queue."
   },
 
   "flags": {

@@ -161,7 +161,11 @@ class Voice(commands.Cog):
 
 	@commands.command(help=speech.help.join, brief=speech.brief.join)
 	async def join(self, ctx, *args):
-		await ctx.author.voice.channel.connect()
+		channel = ctx.author.voice
+		if not channel:
+			await ctx.send("You need to be in a voice channel to use this command.")
+		await channel.channel.connect()
+		await ctx.send(embed=discord.Embed(description=f":musical_note: Joined **{channel.channel.name}** :musical_note:"))
 
 
 	@commands.command(help=speech.help.leave, brief=speech.brief.leave)
@@ -172,22 +176,28 @@ class Voice(commands.Cog):
 	@commands.command(help=speech.help.skip, brief=speech.brief.skip)
 	async def skip(self, ctx):
 		self.queue.skip()
+		await ctx.send("Skipped song!")
+
 
 
 	@commands.command(help=speech.help.pause, brief=speech.brief.pause)
 	async def pause(self, ctx):
 		self.queue.pause()
+		await ctx.send("Paused queue!")
 
 
 	@commands.command(help=speech.help.resume, brief=speech.brief.resume)
 	async def resume(self, ctx):
 		self.queue.resume()
-
+		await ctx.send("Resumed queue!")
 
 	@commands.command(help=speech.help.play, brief=speech.brief.play)
 	async def play(self, ctx, url=None):
 		if not ctx.voice_client:
-			await ctx.author.voice.channel.connect()
+			channel = ctx.author.voice
+			if not channel:
+				await ctx.send("You need to be in a voice channel to use this command.")
+			await channel.channel.connect()
 
 		if url is None:
 			if self.queue.is_paused:
@@ -197,13 +207,29 @@ class Voice(commands.Cog):
 
 		self.queue.add(url, ctx)
 
+		songs = self.queue.get_queue_songs()
+
+		if len(songs) == 1:
+			await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {int((songs[0].duration - (songs[0].duration % 60)) /60)}:{songs[0].duration % 60}"))
+		else:
+			playtime = sum(song.duration for song in songs[1:]) + self.queue.song_time_left().total_seconds()
+			await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {int((playtime - (playtime % 60)) /60)}:{int(round(playtime % 60))}"))
 
 	@commands.command()
 	async def queue(self, ctx):
-		queue_songs = self.queue.get_queue_songs()
+		songs = self.queue.get_queue_songs()
+		print(songs)
+		if songs[0].title is None:
+			return await ctx.send(f"Queue is empty! Enter a voice channel and add song with `{config.prefix}play [youtube url]`")
 
-		await ctx.send("\n".join([song.title for song in queue_songs]))
+		playlist = "Up next:\n"
+		playing_time_left = self.queue.song_time_left().total_seconds()
+		playtime = playing_time_left
 
+		for ix, song in enumerate(songs[1:]):
+			playtime += song.duration
+			playlist += f"**{ix+1}: [{int((playtime - (playtime % 60)) /60)}:{int(round(playtime % 60))}]** {song.title}!\n"
+		await ctx.send(embed=discord.Embed(title=f"Currently playing: {songs[0].title} :musical_note: Time remaining: {int((playing_time_left - (playing_time_left % 60)) /60)}:{round(int(playing_time_left % 60))}", description=playlist))
 
 def setup(bot):
 	bot.add_cog(Voice(bot))
