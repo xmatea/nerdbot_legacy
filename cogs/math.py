@@ -8,6 +8,8 @@ import flagparser
 import mathparser as mp
 
 config = process.readjson('config.json')
+speech = process.readjson('speech.json')
+
 
 class Math(commands.Cog):
     def __init__(self, bot):
