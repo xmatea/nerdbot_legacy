@@ -8,7 +8,6 @@ import flagparser
 import mathparser as mp
 
 config = process.readjson('config.json')
-speech = process.readjson('speech.json')
 
 class Math(commands.Cog):
     def __init__(self, bot):
@@ -16,23 +15,15 @@ class Math(commands.Cog):
         self.hidden = False
         self.name = 'Math'
 
-<<<<<<< HEAD
-    @commands.command(help=speech.help.calculate, brief=speech.brief.calculate)
-=======
 
-    @commands.command()
->>>>>>> 14f565eb8427e418a7b5b08ac5e511c9c1638989
+    @commands.command(help=speech.help.calculate, brief=speech.brief.calculate)
     async def calculate(self, ctx, *, expr):
         res = mp.evaluate(expr)
 
         await ctx.send(content="", embed= discord.Embed(title=f"`{expr} = {res}`"))
 
-<<<<<<< HEAD
-    @commands.command(help=speech.help.plot, brief=speech.brief.plot)
-=======
 
-    @commands.command()
->>>>>>> 14f565eb8427e418a7b5b08ac5e511c9c1638989
+    @commands.command(help=speech.help.plot, brief=speech.brief.plot)
     async def plot(self, ctx, expression: str, *, args):
         argument_flags = ('-range', '-rt')
         bool_flags = {'-rt': False, '-polar': False, '-surface': False, '-anim': False}
@@ -62,7 +53,7 @@ class Math(commands.Cog):
             else:
                 buf = graphing.static_polar(expression, ranges['theta'])
                 buf.seek(0)
-
+            
                 await ctx.send(file=discord.File(buf, "image.png"))
 
         elif bool_flags['-surface']:
@@ -99,12 +90,6 @@ class Math(commands.Cog):
 
                 await ctx.send(file=discord.File(buf, "image.png"))
 
-<<<<<<< HEAD
-
-
-
-=======
         
->>>>>>> 14f565eb8427e418a7b5b08ac5e511c9c1638989
 def setup(bot):
     bot.add_cog(Math(bot))
