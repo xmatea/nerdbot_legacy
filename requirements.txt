@@ -34,3 +34,4 @@ watchgod==0.7
 websockets==8.1
 yarl==1.6.3
 youtube-dl==2021.3.31
+youtube-search-python==1.4.3
