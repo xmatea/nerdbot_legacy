@@ -54,18 +54,21 @@ def animated_cartesian(expr: str, x_range: Tuple[float, float], a_range: Tuple[f
 	x = np.linspace(x1, x2, 10*int(x2-x1))
 	a = np.linspace(a1, a2, int(a2-a1)+1)
 
+	y = mp.eval_2d(expr, {"a": a2, "x": x})
 
 	plt.xlim(x1, x2)
-	plt.ylim(min(0, mp.evaluate(expr, {"x": x1, "a": a2})), mp.evaluate(expr, {"x": x2, "a": a2}))
+	plt.ylim(min(0, min(y)), max(y))
 
 	plt.autoscale(False)
+
+	fig.text(0.02, 0.92, f"y = {expr}", fontsize=16)
 
 	frames = []
 	for a_val in a:
 		y = mp.eval_2d(expr, {"a": a_val, "x": x})
 
 		curve = ax.plot(x, y)
-		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
+		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="right", color="white")
 
 		_buf = io.BytesIO()
 		plt.savefig(_buf, format="png")
@@ -112,12 +115,17 @@ def animated_polar(expr: str, theta_range: Tuple[float, float], a_range: Tuple[f
 	theta = np.linspace(theta1, theta2, 36000)
 	a = np.linspace(a1, a2, int(a2-a1)+1)
 
+	r = mp.eval_2d(expr, {"a": a2, "theta": theta}, polar=True)
+	ax.set_ylim(min(0, min(r)), max(r))
+
+	fig.text(0.02, 0.92, f"r = {expr}", fontsize=16)
+
 	frames = []
 	for a_val in a:
 		r = mp.eval_2d(expr, {"a": a_val, "theta": theta}, polar=True)
 
 		curve = ax.plot(theta, r)
-		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
+		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="right", color="white")
 
 		_buf = io.BytesIO()
 		plt.savefig(_buf, format="png")
@@ -148,6 +156,8 @@ def static_surface(expr: str, x_range: Tuple[float, float], y_range: Tuple[float
 	z = mp.eval_3d(expr, {"x": x, "y": y})
 	z = np.reshape(z, np.shape(xv))
 
+	fig.text(0.02, 0.92, f"z = {expr}", fontsize=16)
+
 	ax.plot_surface(xv, yv, z)
 
 	buf = io.BytesIO()
@@ -173,6 +183,7 @@ def static_surface_rotate(expr: str, x_range: Tuple[float, float], y_range: Tupl
 	z = np.reshape(z, np.shape(xv))
 
 	ax.plot_surface(xv, yv, z)
+	fig.text(0.02, 0.92, f"z = {expr}", fontsize=16)
 
 	frames = []
 	for a in range(0, 360, 18):
@@ -206,7 +217,11 @@ def animated_surface(expr: str, x_range: Tuple[float, float], y_range: Tuple[flo
 
 	plt.xlim(x1, x2)
 	plt.ylim(y1, y2)
-	ax.set_zlim(min(0, mp.evaluate(expr, {"x": x1, "y": y1, "a": a2})), mp.evaluate(expr, {"x": x2, "y": y2, "a": a2}))
+
+	z = np.reshape(mp.eval_3d(expr, {"x": x, "y": y, "a": a2}), -1)
+
+	ax.set_zlim(min(0, min(z)), max(z))
+	fig.text(0.02, 0.92, f"z = {expr}", fontsize=16)
 
 	frames = []
 	for a_val in a:
@@ -214,7 +229,7 @@ def animated_surface(expr: str, x_range: Tuple[float, float], y_range: Tuple[flo
 		z = np.reshape(z, np.shape(xv))
 
 		surface = ax.plot_surface(xv, yv, z)
-		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
+		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="right", color="white")
 
 		_buf = io.BytesIO()
 		plt.savefig(_buf, format="png")
@@ -246,7 +261,11 @@ def animated_surface_rotate(expr: str, x_range: Tuple[float, float], y_range: Tu
 
 	plt.xlim(x1, x2)
 	plt.ylim(y1, y2)
-	ax.set_zlim(min(0, mp.evaluate(expr, {"x": x1, "y": y1, "a": a2})), mp.evaluate(expr, {"x": x2, "y": y2, "a": a2}))
+	
+	z = np.reshape(mp.eval_3d(expr, {"x": x, "y": y, "a": a2}), -1)
+
+	ax.set_zlim(min(0, min(z)), max(z))
+	fig.text(0.02, 0.92, f"z = {expr}", fontsize=16)
 
 	frames = []
 	for angle in range(0, 360, 18):
@@ -256,7 +275,7 @@ def animated_surface_rotate(expr: str, x_range: Tuple[float, float], y_range: Tu
 		z = np.reshape(z, np.shape(xv))
 
 		surface = ax.plot_surface(xv, yv, z)
-		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
+		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="right", color="white")
 
 		ax.view_init(30, angle)
 
