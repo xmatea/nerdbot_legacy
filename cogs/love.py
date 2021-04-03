@@ -17,7 +17,6 @@ class Love(commands.Cog):
     @commands.command(help=speech.help.fact, brief=speech.brief.fact)
     async def fact(self, ctx, *args):
         ix = round(random.random() * (len(speech.facts)-1))
-        await ctx(ix)
         fact = speech.facts[ix]
         await ctx.send(fact)
 
