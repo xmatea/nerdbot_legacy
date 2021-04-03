@@ -1,5 +1,6 @@
 import cexprtk
 import numpy as np
+from math import e, log
 
 class Expression(cexprtk.Expression):
 	def __init__(self, *args, **kwargs):
@@ -16,8 +17,10 @@ class Expression(cexprtk.Expression):
 		return v if v else 0
 
 
-def evaluate(expr, vars={'e': np.e}):
-	st = cexprtk.Symbol_Table(vars, add_constants=True)
+def evaluate(expr, vars={}):
+	st = cexprtk.Symbol_Table(vars, {"e": e}, add_constants=True)
+	st.functions["ln"] = lambda x: log(x)
+
 	expr = Expression(expr, st)
 
 	return expr.value()
@@ -27,9 +30,11 @@ def eval_2d(expr, vars, polar=False):
 	var = "theta" if polar else "x"
 
 	if "a" in vars.keys():
-		st = cexprtk.Symbol_Table({"a": vars["a"], "e": np.e, var: 1}, add_constants=True)
+		st = cexprtk.Symbol_Table({"a": vars["a"], var: 1}, {"e": e}, add_constants=True)
 	else:
-		st = cexprtk.Symbol_Table({var: 1, "e": np.e}, add_constants=True)
+		st = cexprtk.Symbol_Table({var: 1}, {"e": e}, add_constants=True)
+
+	st.functions["ln"] = lambda x: log(x)
 
 	expr = Expression(expr, st)
 
@@ -44,9 +49,11 @@ def eval_2d(expr, vars, polar=False):
 
 def eval_3d(expr, vars):
 	if "a" in vars.keys():
-		st = cexprtk.Symbol_Table({"a": vars["a"], "x": 1, "y": 1, "e": np.e}, add_constants=True)
+		st = cexprtk.Symbol_Table({"a": vars["a"], "x": 1, "y": 1}, {"e": e}, add_constants=True)
 	else:
-		st = cexprtk.Symbol_Table({"x": 1, "y": 1, "e": np.e}, add_constants=True)
+		st = cexprtk.Symbol_Table({"x": 1, "y": 1}, {"e": e}, add_constants=True)
+
+	st.functions["ln"] = lambda x: log(x)
 
 	expr = Expression(expr, st)
 
