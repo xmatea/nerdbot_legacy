@@ -121,8 +121,9 @@ class Math(commands.Cog):
                     await ctx.send(file=discord.File(buf, "image.png"))
                     await wait_message.delete()
         except Exception as e:
-            await ctx.send("An error occurred!")
-            print(e)
+            await ctx.send(f"An error occurred!\nError: {e}")
+            await wait_message.delete()
+
             raise commands.UserInputError()
 
 def setup(bot):
