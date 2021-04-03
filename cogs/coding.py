@@ -24,9 +24,14 @@ class Coding(commands.Cog):
             url = ctx.message.attachments[0].url
             html = requests.get(url).text
 
-        img = await html_module.convert_to_img(html)
-        img.seek(0)
+        if not ("http://" in html or "https://" in html):
+            img = await html_module.html_to_img(html)
+            
+        else:
+            url = html
+            img = await html_module.url_to_img(url) # make this one better
 
+        img.seek(0)
         await ctx.send(file=discord.File(img, "image.png"))
 
 
