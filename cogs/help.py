@@ -58,6 +58,15 @@ class Help(commands.Cog):
                 embed = discord.Embed(title=f"{cmd.name}",colour=int(Config.default_embed_colour))
                 text = f"{cmd.help}".format(Config.prefix)
                 embed.add_field(name="Help and usage", value=text)
+                if getattr(speech.flags, cmd.name):
+                    flagstr = ""
+                    flags = getattr(speech.flags, cmd.name)
+                    flags = flags._asdict()
+                    for flag in flags.keys():
+                        flagstr +=f"\n`-{flag}`: {flags[flag]}"
+                    embed.add_field(name="Flags", value=flagstr, inline=False)
+                else:
+                    print(f"warning: {cmd.name} has no flag usage description")
                 await ctx.send(content="", embed=embed)
                 return
 
