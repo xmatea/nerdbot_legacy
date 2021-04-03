@@ -61,6 +61,7 @@ class Song:
 	def __init__(self, url, yt):
 		self.duration = yt.length
 		self.title = yt.title
+		self.image_url = yt.thumbnail_url
 		self.url = url
 
 	def to_buffer(self, buf):
