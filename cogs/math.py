@@ -29,20 +29,20 @@ class Math(commands.Cog):
         if not args:
             raise commands.UserInputError()
         try:
-            flags = ('-range', '-rt', '-polar')
-            bool_flags = {'-rt': False, '-polar': False}
+            flags = ('-range', '-rt')
+            bool_flags = {'-rt': False}
             default_ranges = {'x': (0,10), 'y': (0,10), 'theta': (0, mp.evaluate('2*pi')), 'a': (0,10)}
             ranges = {}
             animation = False
             surface = False
+            polar = False
 
             args = flagparser.format(args, flags)
             expression = args['content']
 
             animation = len(re.compile(r'\b(a)\b').findall(expression)) > 0
             surface = len(re.compile(r'\b(y)\b').findall(expression)) > 0
-
-
+            polar = len(re.compile(r'\b(theta)\b').findall(expression)) > 0
 
             for flag in bool_flags.keys():
                 if flag in args:
@@ -59,25 +59,27 @@ class Math(commands.Cog):
                 if animation: ranges.update({'a': default_ranges['a']})
                 if surface: ranges.update({'y': default_ranges['y']})
 
-                if bool_flags['-polar']:
+                if polar:
                     ranges.update({'theta': default_ranges['theta']})
                 else:
                     ranges.update({'x': default_ranges['x']})
 
-            await ctx.send(embed=discord.Embed(title=f"`Plotting {expression}`", description="Please wait..."))
+            wait_message = await ctx.send(embed=discord.Embed(title=f"`Plotting {expression}`", description="Please wait..."))
 
             # PLOT GRAPH
-            if bool_flags['-polar']:
+            if polar:
                 if animation:
                     buf = graphing.animated_polar(expression, ranges['theta'], ranges['a'])
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "anim.gif"))
+                    await wait_message.delete()
                 else:
                     buf = graphing.static_polar(expression, ranges['theta'])
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "image.png"))
+                    await wait_message.delete()
 
             elif surface:
                 if animation and bool_flags['-rt']:
@@ -85,21 +87,25 @@ class Math(commands.Cog):
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "anim.gif"))
+                    await wait_message.delete()
                 elif animation:
                     buf = graphing.animated_surface(expression, ranges['x'], ranges['y'], ranges['a'])
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "anim.gif"))
+                    await wait_message.delete()
                 elif bool_flags['-rt']:
                     buf = graphing.static_surface_rotate(expression, ranges['x'], ranges['y'])
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "anim.gif"))
+                    await wait_message.delete()
                 else:
                     buf = graphing.static_surface(expression, ranges['x'], ranges['y'])
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "image.png"))
+                    await wait_message.delete()
 
             else:
                 if animation:
@@ -107,13 +113,16 @@ class Math(commands.Cog):
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "anim.gif"))
+                    await wait_message.delete()
                 else:
                     buf = graphing.static_cartesian(expression, ranges['x'])
                     buf.seek(0)
 
                     await ctx.send(file=discord.File(buf, "image.png"))
-        except:
+                    await wait_message.delete()
+        except Exception as e:
             await ctx.send("An error occurred!")
+            print(e)
             raise commands.UserInputError()
 
 def setup(bot):

@@ -91,7 +91,7 @@ def static_polar(expr: str, theta_range: Tuple[float, float]) -> io.BytesIO:
 
 	r = mp.eval_2d(expr, {"theta": theta}, polar=True)
 
-	ax.plot(r, theta)
+	ax.plot(theta, r)
 	fig.text(0.02, 0.92, f"r = {expr}", fontsize=16)
 
 	buf = io.BytesIO()
@@ -116,7 +116,7 @@ def animated_polar(expr: str, theta_range: Tuple[float, float], a_range: Tuple[f
 	for a_val in a:
 		r = mp.eval_2d(expr, {"a": a_val, "theta": theta}, polar=True)
 
-		curve = ax.plot(r, theta)
+		curve = ax.plot(theta, r)
 		plt.title(f"a = {a_val}", bbox={"facecolor": "black", "alpha": 0.75, "pad": 5}, loc="left", color="white")
 
 		_buf = io.BytesIO()

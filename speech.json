@@ -19,7 +19,7 @@
     "embed": "I can embed a message to make it look fancy. Title and colours have to be specified after the text.\nExample: `{0} embed uhhhh -t Breaking news -c 00000000`",
     "bestperson": "Who's the best person in the world, you ask?",
     "fact": "List of facts.",
-    "plot": "Plots a mathematical expression. \nExample: `{0}plot x^2+y -range x=[-5, 5] y=[-2.5, 2.5]`",
+    "plot": "Plots a mathematical expression using matplotlib. \nPlot static functions with *x*, surfaces with *x* and *y*, and polar functions with *theta*. Use *a* to animate your function.\nExample: `{0}plot x^2+y -range x=[-5, 5] y=[-2.5, 2.5]`",
     "calculate": "I'm quite the calculator myself. Don't really like spaces tho.\nExample: `{0} calculate 69^69`",
     "join": "Join voice chat.",
     "leave": "Leave voice chat.",
@@ -51,8 +51,8 @@
 
   "flags": {
     "plot": {
-      "range": "Defaults to [-10,10]. Specify a range for your variables. Format: variable=[min, max]",
-      "polar": "Defaults to false. Plots the graph in polar coordinates. Use theta instead of x. Default range is [0,2*pi]"
+      "range": "Defaults to [-10,10] for cartesian, [0, 2*pi] for polar. Specify a range for your variables. Format: variable=[min, max]",
+      "rt": "Defaults to false. Sets a surface plot to rotate."
     },
     "embed": {
       "t": "Defaults to none. Set a title for your embed.",
