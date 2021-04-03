@@ -23,11 +23,12 @@
     "calculate": "I'm quite the calculator myself. Don't really like spaces tho.\nExample: `{0} calculate 69^69`",
     "join": "Join voice chat.",
     "leave": "Leave voice chat.",
-    "play": "Plays a song in voice chat with a youtube link. \nExample: `{0}play https://www.youtube.com/watch?v=dQw4w9WgXcQ`",
+    "play": "Plays a youtube video in voice chat from either a youtube link or a search query. \nExample: `{0}play whitechapel`",
     "pause": "Pauses currently playing song in voice chat.",
     "resume": "Resumes currently paused song in voice chat.",
     "skip": "Skips currently playing song in voice chat.",
-    "queue": "Display current playing queue."
+    "queue": "Display current playing queue.",
+    "search": "Displays a list of youtube results from your query.\nExample: `{0}search whitechapel`"
   },
 
   "brief": {
@@ -46,7 +47,8 @@
     "pause": "Pauses currently playing song in voice chat.",
     "resume": "Resumes currently paused song in voice chat.",
     "skip": "Skips currently playing song in voice chat.",
-    "queue": "Display current playing queue."
+    "queue": "Display current playing queue.",
+    "search": "Performs a quick youtube search."
   },
 
   "flags": {
@@ -61,6 +63,9 @@
     "colour_from_img": {
       "m": "Calculates the mean value of the image",
       "r": "Gets a the random colour from an image"
+    },
+    "play": {
+      "list": "Displays a list of results from your query."
     }
   }
 }

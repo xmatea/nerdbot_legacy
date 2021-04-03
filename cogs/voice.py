@@ -154,7 +154,7 @@ class Queue: # make async
 	def skip(self, index):
 		if not index:
 			if len(self._items):
-				self.play_next() 
+				self.play_next()
 			else:
 				self.current_song = SimpleNamespace(duration=0, title=None, url=None)
 				self.ctx.voice_client.stop()
@@ -207,12 +207,18 @@ class Voice(commands.Cog):
 
 	@commands.command()
 	async def search(self, ctx, *, search_term):
+		if not search_term:
+			raise commands.UserInputError()
+
 		search = VideosSearch(search_term, limit=10)
 		res = search.result()["result"]
 
-		for r in res:
-			await ctx.send(r)
+		send="```"
+		for ix, r in enumerate(res):
+			 send += f"{ix+1}: {r['title']}\n"
+		send +="```"
 
+		await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
 
 	@commands.command(help=speech.help.play, brief=speech.brief.play)
 	async def play(self, ctx, *, url=None):
@@ -261,7 +267,6 @@ class Voice(commands.Cog):
 			playtime += song.duration
 			playlist += f"**{ix+1}: [{self.formatted_time(playtime)}]** {song.title}!\n"
 		await ctx.send(embed=discord.Embed(title=f"Currently playing: {songs[0].title} :musical_note:\nTime remaining: {self.formatted_time(playtime)}", description=playlist))
-
 
 def setup(bot):
 	bot.add_cog(Voice(bot))
