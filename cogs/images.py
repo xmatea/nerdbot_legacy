@@ -7,7 +7,7 @@ import requests
 from io import BytesIO
 import numpy
 import html_module
-import image_processing
+from image_processing import generate_palette
 import random
 
 Config = readjson('config.json')
@@ -24,7 +24,7 @@ class Images(commands.Cog):
         url = ctx.message.attachments[0].url
         img = Image.open(requests.get(url, stream=True).raw).convert('RGB')
 
-        palette = image_processing.generate_palette(img)
+        palette = generate_palette(img)
         palette.seek(0)
 
         await ctx.send(file=discord.File(palette, "palette.png"))
