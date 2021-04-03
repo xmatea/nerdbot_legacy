@@ -18,7 +18,7 @@ class Help(commands.Cog):
             # List all commands in an embed
             embed = discord.Embed(title=":bar_chart: Help :bar_chart:", colour=int(Config.default_embed_colour))
             embed.description = f"{speech.helpembed.helptext}".format(Config.prefix)
-            #embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url, url="https://top.gg")
+            embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url, url="https://top.gg")
 
             for c in self.bot.cogs:
                 cog = self.bot.get_cog(c)
