@@ -17,13 +17,13 @@ class EventHandler(commands.Cog):
     async def on_guild_join(self, guild):
         mongo.insert(guild, mongo.guildModel, db.guilds)
         channel = self.bot.get_guild(config.home_guild).get_channel(config.log_channel)
-        await channel.send(embed=discord.Embed(title="Joined new server!", description=f"**Name:** {guild.name}\n**Size:** {guild.member_count} members\nCurrently in {len(self.bot.guilds)} servers!"))
+        await channel.send(embed=discord.Embed(title="Joined new server!", description=f"**Name:** {guild.name}\n**Size:** {guild.member_count-1} members\nCurrently in {len(self.bot.guilds)} servers!"))
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild):
         mongo.remove({"_id": guild.id}, db.guilds)
         channel = self.bot.get_guild(config.home_guild).get_channel(config.log_channel)
-        await channel.send(embed=discord.Embed(title="Left a server!", description=f"**Name:** {guild.name}\n**Size:** {guild.member_count} members\nCurrently in {len(self.bot.guilds)} servers!"))
+        await channel.send(embed=discord.Embed(title="Left a server!", description=f"**Name:** {guild.name}\n**Size:** {guild.member_count-1} members\nCurrently in {len(self.bot.guilds)} servers!"))
 
 
     @commands.Cog.listener()
