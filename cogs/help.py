@@ -16,24 +16,37 @@ class Help(commands.Cog):
     async def help(self, ctx, *args):
         if not args:
             # List all commands in an embed
-            embed = discord.Embed(title=":bar_chart: Help :bar_chart:", colour=int(speech.helpembed.embedcolour), timestamp=datetime.now())
+            embed = discord.Embed(title=":bar_chart: Help :bar_chart:", colour=int(Config.default_embed_colour))
             embed.description = f"{speech.helpembed.helptext}".format(Config.prefix)
+            #embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url, url="https://top.gg")
 
             for c in self.bot.cogs:
                 cog = self.bot.get_cog(c)
                 if not cog.hidden:
                     text=""
-                    for cmd in cog.get_commands():
-                        if not cmd.hidden:
-                            text += f"{Config.prefix}{cmd.name}\n"
+                    if cog.name == 'Voice':
+                        for ix, cmd in enumerate(cog.get_commands()):
+                            if cmd.hidden:
+                                return
+                            if ix % 2 == 0:
+                                text += f"{Config.prefix}{cmd.name},\t"
+                            else:
+                                text += f"{Config.prefix}{cmd.name}\n"
+
+                    else:
+                        for cmd in cog.get_commands():
+                            if not cmd.hidden:
+                                text += f"{Config.prefix}{cmd.name}\n"
                     embed.add_field(name=c, value=text)
+            embed.add_field(name="Links and support", value="If you like me, please consider voting for me [here](https://top.gg)!\n[Github repository](https://github.com/xmatea/nerdbot)", inline=False)
+            embed.set_footer(text="NerdBot by mogzhey#5070 and tea#4001")
             await ctx.send(content="", embed=embed)
 
         elif self.bot.get_cog(args[0].lower().capitalize()):
             cog = self.bot.get_cog(args[0].lower().capitalize())
             if not cog.hidden:
                 text=""
-                embed = discord.Embed(title=f"{cog.name} commands",colour=int(speech.helpembed.embedcolour))
+                embed = discord.Embed(title=f"{cog.name} commands",colour=int(Config.default_embed_colour))
                 for cmd in cog.get_commands():
                     if not cmd.hidden:
                         text += f"{cmd.name} - {cmd.brief}\n"
@@ -44,7 +57,7 @@ class Help(commands.Cog):
         elif self.bot.get_command(args[0].lower()):
             cmd = self.bot.get_command(args[0].lower())
             if not cmd.hidden:
-                embed = discord.Embed(title=f"{cmd.name}",colour=int(speech.helpembed.embedcolour))
+                embed = discord.Embed(title=f"{cmd.name}",colour=int(Config.default_embed_colour))
                 text = f"{cmd.help}".format(Config.prefix)
                 embed.add_field(name="Help and usage", value=text)
                 await ctx.send(content="", embed=embed)

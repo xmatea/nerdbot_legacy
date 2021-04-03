@@ -1,7 +1,6 @@
 {
   "helpembed": {
-    "helptext": "Hi! I'm NerdBot, a nerdy multi-purpose bot. Below is a list of my commands.\nDo `{0}help commandname` for more info about a command.",
-    "embedcolour": "00000000"
+    "helptext": "Hi! I'm NerdBot, a nerdy multi-purpose bot. Below is a list of my commands.\nDo `{0}help commandname` for more info about a command."
   },
 
   "facts": [

@@ -1,5 +1,6 @@
 {
   "prefix": "nerdbot ",
   "home_guild": 812866133652144198,
-  "log_channel": 826956624819650560
+  "log_channel": 826956624819650560,
+  "default_embed_colour": 5420931
 }
