@@ -3,6 +3,7 @@ from discord.ext import commands
 import process
 from pytube import YouTube
 import io
+import asyncio
 import subprocess
 import shlex
 from discord.opus import Encoder
@@ -213,9 +214,47 @@ class Voice(commands.Cog):
 
 		search = VideosSearch(search_term, limit=10)
 		res = search.result()["result"]
-		send = self.formatted_search(res)
 
-		await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
+		# display search message
+		send="```"
+		for ix, r in enumerate(res):
+			 send += f"{ix+1}: {r['title']}\n"
+		send +="```"
+		msg = await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
+
+		emoji_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+		for emoji in emoji_list:
+			await msg.add_reaction(emoji)
+
+		def check(reaction, user):
+			return user == ctx.message.author and reaction.emoji in emoji_list
+
+		react = None;
+
+		try:
+			reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
+			react = reaction.emoji
+		except asyncio.TimeoutError:
+			await ctx.channel.send(embed=discord.Embed(description="**Search timed out.**"))
+			await msg.clear_reactions()
+		else:
+			if not ctx.voice_client:
+				channel = ctx.author.voice
+				if not channel:
+					await ctx.send("You need to be in a voice channel to use this command.")
+				await channel.channel.connect()
+
+			url = res[emoji_list.index(react)]['link']
+			self.queue.add(url, ctx)
+
+			songs = self.queue.get_queue_songs()
+			if len(songs) == 1:
+				await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {self.formatted_time(songs[0].duration)}"))
+			else:
+				playtime = sum(song.duration for song in songs[1:]) + self.queue.song_time_left().total_seconds()
+				await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {self.formatted_time(playtime)}"))
+
+			await msg.clear_reactions()
 
 
 	@commands.command(help=speech.help.play, brief=speech.brief.play)
