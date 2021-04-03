@@ -2,7 +2,7 @@ import io
 import asyncio
 from pyppeteer import launch
 
-async def convert_to_img(html: str) -> io.BytesIO:
+async def html_to_img(html: str) -> io.BytesIO:
 	browser = await launch()
 	page = await browser.newPage()
 	await page.setContent(html)
@@ -21,16 +21,12 @@ async def convert_to_img(html: str) -> io.BytesIO:
 	return image
 
 
-#remove from here down, just for testing
-if __name__ == "__main__":
-	from PIL import Image
+async def url_to_img(url: str) -> io.BytesIO:
+	browser = await launch()
+	page = await browser.newPage()
+	await page.goto(url)
 
-	html = """
-		<div style="width:250px; height:250px; background-color: #AA00AA"></div>
-	"""
+	image = io.BytesIO(await page.screenshot())
+	await browser.close()
 
-	loop = asyncio.new_event_loop()
-	asyncio.set_event_loop(loop)
-	img = loop.run_until_complete(convert_to_img(html))
-
-	Image.open(img).show()
+	return image
