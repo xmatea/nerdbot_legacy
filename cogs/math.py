@@ -8,6 +8,7 @@ import flagparser
 import mathparser as mp
 
 config = process.readjson('config.json')
+speech = process.readjson('speech.json')
 
 class Math(commands.Cog):
     def __init__(self, bot):
@@ -24,72 +25,96 @@ class Math(commands.Cog):
 
 
     @commands.command(help=speech.help.plot, brief=speech.brief.plot)
-    async def plot(self, ctx, expression: str, *, args):
-        argument_flags = ('-range', '-rt')
-        bool_flags = {'-rt': False, '-polar': False, '-surface': False, '-anim': False}
+    async def plot(self, ctx, *, args):
+        if not args:
+            raise commands.UserInputError()
+        try:
+            flags = ('-range', '-rt', '-polar')
+            bool_flags = {'-rt': False, '-polar': False}
+            default_ranges = {'x': (0,10), 'y': (0,10), 'theta': (0, mp.evaluate('2*pi')), 'a': (0,10)}
+            ranges = {}
+            animation = False
+            surface = False
 
-        for flag in bool_flags.keys():
-            if flag in args:
-                bool_flags[flag] = True
-                args = args.replace(flag, "")
+            args = flagparser.format(args, flags)
+            expression = args['content']
 
-        args = flagparser.format(''.join(args), argument_flags, True)
-        ranges = {}
+            animation = len(re.compile(r'\b(a)\b').findall(expression)) > 0
+            surface = len(re.compile(r'\b(y)\b').findall(expression)) > 0
 
-        if '-range' in args.keys():
-            matches = re.findall('([a-zA-Z]+)=\[([^,\[\]]*),([^,\[\]]*)\]', args['-range'])
-            if not matches:
-                raise commands.UserInputError()
 
-            for m in matches:
-                ranges.update({m[0]: (mp.evaluate(m[1]), mp.evaluate(m[2])) })
 
-        if bool_flags['-polar']:
-            if bool_flags['-anim']:
-                buf = graphing.animated_polar(expression, ranges['theta'], ranges['a'])
-                buf.seek(0)
+            for flag in bool_flags.keys():
+                if flag in args:
+                    bool_flags[flag] = True
 
-                await ctx.send(file=discord.File(buf, "anim.gif"))
+            if '-range' in args.keys():
+                matches = re.findall('([a-zA-Z]+)=\[([^,\[\]]*),([^,\[\]]*)\]', args['-range'])
+                if not matches:
+                    raise commands.UserInputError()
+
+                for m in matches:
+                    ranges.update({m[0]: (mp.evaluate(m[1]), mp.evaluate(m[2])) })
             else:
-                buf = graphing.static_polar(expression, ranges['theta'])
-                buf.seek(0)
-            
-                await ctx.send(file=discord.File(buf, "image.png"))
+                if animation: ranges.update({'a': default_ranges['a']})
+                if surface: ranges.update({'y': default_ranges['y']})
 
-        elif bool_flags['-surface']:
-            if bool_flags['-anim'] and bool_flags['-rt']:
-                buf = graphing.animated_surface_rotate(expression, ranges['x'], ranges['y'], ranges['a'])
-                buf.seek(0)
+                if bool_flags['-polar']:
+                    ranges.update({'theta': default_ranges['theta']})
+                else:
+                    ranges.update({'x': default_ranges['x']})
 
-                await ctx.send(file=discord.File(buf, "anim.gif"))
-            elif bool_flags['-anim']:
-                buf = graphing.animated_surface(expression, ranges['x'], ranges['y'], ranges['a'])
-                buf.seek(0)
+            await ctx.send(embed=discord.Embed(title=f"`Plotting {expression}`", description="Please wait..."))
 
-                await ctx.send(file=discord.File(buf, "anim.gif"))
-            elif bool_flags['-rt']:
-                buf = graphing.static_surface_rotate(expression, ranges['x'], ranges['y'])
-                buf.seek(0)
+            # PLOT GRAPH
+            if bool_flags['-polar']:
+                if animation:
+                    buf = graphing.animated_polar(expression, ranges['theta'], ranges['a'])
+                    buf.seek(0)
 
-                await ctx.send(file=discord.File(buf, "anim.gif"))
+                    await ctx.send(file=discord.File(buf, "anim.gif"))
+                else:
+                    buf = graphing.static_polar(expression, ranges['theta'])
+                    buf.seek(0)
+
+                    await ctx.send(file=discord.File(buf, "image.png"))
+
+            elif surface:
+                if animation and bool_flags['-rt']:
+                    buf = graphing.animated_surface_rotate(expression, ranges['x'], ranges['y'], ranges['a'])
+                    buf.seek(0)
+
+                    await ctx.send(file=discord.File(buf, "anim.gif"))
+                elif animation:
+                    buf = graphing.animated_surface(expression, ranges['x'], ranges['y'], ranges['a'])
+                    buf.seek(0)
+
+                    await ctx.send(file=discord.File(buf, "anim.gif"))
+                elif bool_flags['-rt']:
+                    buf = graphing.static_surface_rotate(expression, ranges['x'], ranges['y'])
+                    buf.seek(0)
+
+                    await ctx.send(file=discord.File(buf, "anim.gif"))
+                else:
+                    buf = graphing.static_surface(expression, ranges['x'], ranges['y'])
+                    buf.seek(0)
+
+                    await ctx.send(file=discord.File(buf, "image.png"))
+
             else:
-                buf = graphing.static_surface(expression, ranges['x'], ranges['y'])
-                buf.seek(0)
+                if animation:
+                    buf = graphing.animated_cartesian(expression, ranges['x'], ranges['a'])
+                    buf.seek(0)
 
-                await ctx.send(file=discord.File(buf, "image.png"))
+                    await ctx.send(file=discord.File(buf, "anim.gif"))
+                else:
+                    buf = graphing.static_cartesian(expression, ranges['x'])
+                    buf.seek(0)
 
-        else:
-            if bool_flags['-anim']:
-                buf = graphing.animated_cartesian(expression, ranges['x'], ranges['a'])
-                buf.seek(0)
+                    await ctx.send(file=discord.File(buf, "image.png"))
+        except:
+            await ctx.send("An error occurred!")
+            raise commands.UserInputError()
 
-                await ctx.send(file=discord.File(buf, "anim.gif"))
-            else:
-                buf = graphing.static_cartesian(expression, ranges['x'])
-                buf.seek(0)
-
-                await ctx.send(file=discord.File(buf, "image.png"))
-
-        
 def setup(bot):
     bot.add_cog(Math(bot))
