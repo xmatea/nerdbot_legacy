@@ -216,10 +216,7 @@ class Voice(commands.Cog):
 		res = search.result()["result"]
 
 		# display search message
-		send="```"
-		for ix, r in enumerate(res):
-			 send += f"{ix+1}: {r['title']}\n"
-		send +="```"
+		send = self.formatted_search(res)
 		msg = await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
 
 		emoji_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
@@ -245,14 +242,7 @@ class Voice(commands.Cog):
 				await channel.channel.connect()
 
 			url = res[emoji_list.index(react)]['link']
-			self.queue.add(url, ctx)
-
-			songs = self.queue.get_queue_songs()
-			if len(songs) == 1:
-				await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {self.formatted_time(songs[0].duration)}"))
-			else:
-				playtime = sum(song.duration for song in songs[1:]) + self.queue.song_time_left().total_seconds()
-				await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {self.formatted_time(playtime)}"))
+			await ctx.invoke(self.bot.get_command("play"), url=url)
 
 			await msg.clear_reactions()
 
@@ -277,10 +267,8 @@ class Voice(commands.Cog):
 
 			if "-list" in search_term:
 				search_term = search_term.replace("-list", "")
-				res = VideosSearch(search_term, limit=10).result()["result"]
-				send = self.formatted_search(res)
+				await ctx.invoke(self.bot.get_command("search"), search_term=search_term)
 
-				await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
 				return
 			else:
 				search = VideosSearch(search_term, limit=1)
