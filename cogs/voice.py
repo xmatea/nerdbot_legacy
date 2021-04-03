@@ -170,6 +170,7 @@ class Voice(commands.Cog):
 		self.name = 'Voice'
 		self.queue = Queue()
 		self.formatted_time = lambda s: "%d:%02d:%02d" % (s / 3600, (s % 3600) / 60, s % 60) if s > 3600 else "%d:%02d" % (s / 60, s % 60)
+		self.formatted_search = lambda res: "```" + "\n".join([f"{ix+1}: {r['title']}" for ix, r in enumerate(res)]) + "```"
 
 
 	@commands.command(help=speech.help.join, brief=speech.brief.join)
@@ -212,13 +213,10 @@ class Voice(commands.Cog):
 
 		search = VideosSearch(search_term, limit=10)
 		res = search.result()["result"]
-
-		send="```"
-		for ix, r in enumerate(res):
-			 send += f"{ix+1}: {r['title']}\n"
-		send +="```"
+		send = self.formatted_search(res)
 
 		await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
+
 
 	@commands.command(help=speech.help.play, brief=speech.brief.play)
 	async def play(self, ctx, *, url=None):
@@ -237,10 +235,19 @@ class Voice(commands.Cog):
 
 		if not ("http://" in url or "https://" in url):
 			search_term = url
-			search = VideosSearch(search_term, limit=1)
-			watch_id = search.result()["result"][0]["id"]
 
-			url = f"https://www.youtube.com/watch?v={watch_id}"
+			if "-list" in search_term:
+				search_term = search_term.replace("-list", "")
+				res = VideosSearch(search_term, limit=10).result()["result"]
+				send = self.formatted_search(res)
+
+				await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
+				return
+			else:
+				search = VideosSearch(search_term, limit=1)
+				watch_id = search.result()["result"][0]["id"]
+
+				url = f"https://www.youtube.com/watch?v={watch_id}"
 
 		self.queue.add(url, ctx)
 
