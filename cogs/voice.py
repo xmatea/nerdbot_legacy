@@ -297,10 +297,11 @@ class Voice(commands.Cog):
 
 		playlist = "Up next:\n"
 		playtime = self.queue.song_time_left().total_seconds()
+		total_playtime = playtime
 
 		for ix, song in enumerate(songs[1:]):
-			playtime += song.duration
-			playlist += f"**{ix+1}: [{self.formatted_time(playtime)}]** {song.title}!\n"
+			playlist += f"**{ix+1}: [{self.formatted_time(total_playtime)}]** {song.title}!\n"
+			total_playtime += song.duration
 		await ctx.send(embed=discord.Embed(title=f"Currently playing: {songs[0].title} :musical_note:\nTime remaining: {self.formatted_time(playtime)}", description=playlist))
 
 def setup(bot):
