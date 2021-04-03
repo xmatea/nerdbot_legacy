@@ -64,7 +64,7 @@ class Math(commands.Cog):
                 else:
                     ranges.update({'x': default_ranges['x']})
 
-            wait_message = await ctx.send(embed=discord.Embed(title=f"`Plotting {expression}`", description="Please wait..."))
+            wait_message = await ctx.send(embed=discord.Embed(title=f"`Plotting {expression}`", description="Generating. Please wait..."))
 
             # PLOT GRAPH
             if polar:
