@@ -23,16 +23,15 @@ class Fun(commands.Cog):
         await ctx.send(args)
         await ctx.message.delete()
 
-    @commands.command(help=speech.help.embed, brief=speech.brief.embed)
+    @commands.command(help=speech.help.embed, brief=speech.brief.embed, aliases=['e'])
     async def embed(self, ctx, *, args):
         if not args:
             raise UserInputError
 
-        flags = ('-t', '-c')
+        flags = ('-t', '-c', '-a')
         args = flagparser.format(args, flags, False)
         title = ""
-        colour = 00000000
-        print(args)
+        colour = config.default_embed_colour
         if not 'content' in args.keys():
             raise UserInputError
 
@@ -42,7 +41,12 @@ class Fun(commands.Cog):
         if '-t' in args.keys():
             title = args['-t']
 
-        await ctx.send(embed=discord.Embed(title=title, description=args['content'], colour=colour))
+        embed=discord.Embed(title=title, description=args['content'], colour=colour)
+
+        if '-a' not in args.keys():
+            embed.set_author(name=ctx.author.name, icon_url=ctx.author.avatar_url)
+
+        await ctx.send(embed=embed)
         await ctx.message.delete()
 
 

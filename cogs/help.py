@@ -17,7 +17,6 @@ class Help(commands.Cog):
         if not args:
             embed = discord.Embed(title=":bar_chart: Help :bar_chart:", colour=int(Config.default_embed_colour))
             embed.description = f"{speech.helpembed.helptext}".format(Config.prefix)
-            embed.set_author(name=self.bot.user.name, icon_url=self.bot.user.avatar_url, url="https://top.gg")
 
             for c in self.bot.cogs:
                 cog = self.bot.get_cog(c)
@@ -56,9 +55,18 @@ class Help(commands.Cog):
         elif self.bot.get_command(args[0].lower()):
             cmd = self.bot.get_command(args[0].lower())
             if not cmd.hidden:
-                embed = discord.Embed(title=f"{cmd.name}",colour=int(Config.default_embed_colour))
+                embed = discord.Embed(title=f"{cmd.name.capitalize()}",colour=int(Config.default_embed_colour))
                 text = f"{cmd.help}".format(Config.prefix)
                 embed.add_field(name="Help and usage", value=text)
+                try:
+                    flagstr = ""
+                    flags = getattr(speech.flags, cmd.name)
+                    flags = flags._asdict()
+                    for flag in flags.keys():
+                        flagstr +=f"\n`-{flag}`: {flags[flag]}"
+                    embed.add_field(name="Flags", value=flagstr, inline=False)
+                except:
+                    print(f"warning: {cmd.name} has no flag usage description")
                 await ctx.send(content="", embed=embed)
                 return
 

@@ -19,12 +19,12 @@
     "colour_from_img": "Get the average or a random colour from the attached image. Run the command and attach an image in the same message.\nExample: `{0}colour_from_img -r`",
     "palette": "Generates a colour palette from the attached image. Run the command and attach an image in the same message.",
     "html_to_img": "Renders html and returns it as a png!\nExample: `{0}html_to_img <p>Hello world</p`>",
-    "say": "I can pass on any message for you.\nExample: `{0} say shut up`",
-    "embed": "I can embed a message to make it look fancy. Title and colours have to be specified after the text.\nExample: `{0} embed uhhhh -t Breaking news -c 00000000`",
+    "say": "I can pass on any message for you.\nExample: `{0}say shut up`",
+    "embed": "I can embed a message to make it look fancy. Title and colours have to be specified after the text.\nExample: `{0}embed uhhhh -t Breaking news -c 00000000`",
     "bestperson": "Who's the best person in the world, you ask?",
     "fact": "List of facts.",
     "plot": "Plots a mathematical expression using matplotlib. \nPlot static functions with *x*, surfaces with *x* and *y*, and polar functions with *theta*. Use *a* to animate your function.\nExample: `{0}plot x^2+y -range x=[-5, 5] y=[-2.5, 2.5]`",
-    "calculate": "I'm quite the calculator myself. Don't really like spaces tho.\nExample: `{0} calculate 69^69`",
+    "calculate": "I'm quite the calculator myself.\nExample: `{0}calculate 69^69`",
     "join": "Join voice chat.",
     "leave": "Leave voice chat.",
     "play": "Plays a youtube video in voice chat from either a youtube link or a search query. \nExample: `{0}play whitechapel`",
@@ -62,7 +62,8 @@
     },
     "embed": {
       "t": "Defaults to none. Set a title for your embed.",
-      "c": "Defaults to black. Set a colour for your embed. Supports hexadecimal and integer colour values."
+      "c": "Defaults to black. Set a colour for your embed. Supports hexadecimal and integer colour values.",
+      "a": "Removes author tag and makes the embed author anonymous."
     },
     "colour_from_img": {
       "m": "Calculates the mean value of the image",
