@@ -55,7 +55,7 @@ class Help(commands.Cog):
         elif self.bot.get_command(args[0].lower()):
             cmd = self.bot.get_command(args[0].lower())
             if not cmd.hidden:
-                embed = discord.Embed(title=f"{cmd.name}",colour=int(Config.default_embed_colour))
+                embed = discord.Embed(title=f"{cmd.name.capitalize()}",colour=int(Config.default_embed_colour))
                 text = f"{cmd.help}".format(Config.prefix)
                 embed.add_field(name="Help and usage", value=text)
                 try:
