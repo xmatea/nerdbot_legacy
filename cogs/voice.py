@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import process
 from pytube import YouTube
-import requests
 import io
 import subprocess
 import shlex
@@ -10,6 +9,9 @@ from discord.opus import Encoder
 import threading
 from datetime import datetime, timedelta
 from types import SimpleNamespace
+import re
+from youtubesearchpython import VideosSearch
+
 
 config = process.readjson('config.json')
 speech = process.readjson('speech.json')
@@ -203,8 +205,17 @@ class Voice(commands.Cog):
 		await ctx.send("Resumed queue!")
 
 
+	@commands.command()
+	async def search(self, ctx, *, search_term):
+		search = VideosSearch(search_term, limit=10)
+		res = search.result()["result"]
+
+		for r in res:
+			await ctx.send(r)
+
+
 	@commands.command(help=speech.help.play, brief=speech.brief.play)
-	async def play(self, ctx, url=None):
+	async def play(self, ctx, *, url=None):
 		if not ctx.voice_client:
 			channel = ctx.author.voice
 			if not channel:
@@ -216,6 +227,14 @@ class Voice(commands.Cog):
 				self.queue.resume()
 			else:
 				raise commands.BadArgument
+
+
+		if not ("http://" in url or "https://" in url):
+			search_term = url
+			search = VideosSearch(search_term, limit=1)
+			watch_id = search.result()["result"][0]["id"]
+
+			url = f"https://www.youtube.com/watch?v={watch_id}"
 
 		self.queue.add(url, ctx)
 
