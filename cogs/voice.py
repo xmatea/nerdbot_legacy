@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 import process
-from pytube import YouTube
+from pytube import YouTube, Playlist
 import io
 import asyncio
 import subprocess
@@ -93,7 +93,11 @@ class Queue: # make async
 
 
 	def add(self, url, ctx):
-		yt = YouTube(url)
+		try:		
+			yt = YouTube(url)
+			print(yt)
+		except:
+			print("Failed to load video. Oops...")
 
 		song = Song(url, yt)
 
@@ -164,16 +168,20 @@ class Queue: # make async
 			self._items.pop(index-1)
 
 
-
 class Voice(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
 		self.hidden = False
 		self.name = 'Voice'
-		self.queue = Queue()
+		self.queues = {}
 		self.formatted_time = lambda s: "%d:%02d:%02d" % (s / 3600, (s % 3600) / 60, s % 60) if s > 3600 else "%d:%02d" % (s / 60, s % 60)
 		self.formatted_search = lambda res: "```" + "\n".join([f"{ix+1}: {r['title']}" for ix, r in enumerate(res)]) + "```"
 
+	def get_queue(self, id):
+		if not id in self.queues.keys():
+			self.queues.update({id: Queue()})
+		return self.queues[id]
+		
 
 	@commands.command(help=speech.help.join, brief=speech.brief.join)
 	async def join(self, ctx, *args):
@@ -191,20 +199,23 @@ class Voice(commands.Cog):
 
 	@commands.command(help=speech.help.skip, brief=speech.brief.skip)
 	async def skip(self, ctx, index=0):
-		self.queue.skip(index)
+		queue = self.get_queue(ctx.guild.id)
+		queue.skip(index)
 		await ctx.send("Skipped song!")
 
 
 
 	@commands.command(help=speech.help.pause, brief=speech.brief.pause)
 	async def pause(self, ctx):
-		self.queue.pause()
+		queue = self.get_queue(ctx.guild.id)
+		queue.pause()
 		await ctx.send("Paused queue!")
 
 
 	@commands.command(help=speech.help.resume, brief=speech.brief.resume)
 	async def resume(self, ctx):
-		self.queue.resume()
+		queue = self.get_queue(ctx.guild.id)
+		queue.resume()
 		await ctx.send("Resumed queue!")
 
 
@@ -215,41 +226,45 @@ class Voice(commands.Cog):
 
 		search = VideosSearch(search_term, limit=10)
 		res = search.result()["result"]
+		queue = self.get_queue(ctx.guild.id)
 
 		# display search message
-		send = self.formatted_search(res)
+		send = self.formatted_search(res) + "\n Please wait until bot has finished reacting."
 		msg = await ctx.send(embed=discord.Embed(title=f"Search results: {search_term}", description=send))
 
+
+		#react to messages
 		emoji_list = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
 		for emoji in emoji_list:
 			await msg.add_reaction(emoji)
 
 		def check(reaction, user):
-			return user == ctx.message.author and reaction.emoji in emoji_list
+			return user == ctx.message.author and reaction.emoji in emoji_list and reaction.message == msg
 
 		react = None;
-
 		try:
 			reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
 			react = reaction.emoji
+
 		except asyncio.TimeoutError:
 			await ctx.channel.send(embed=discord.Embed(description="**Search timed out.**"))
 			await msg.clear_reactions()
+		
 		else:
 			if not ctx.voice_client:
-				channel = ctx.author.voice
+				channel = ctx.author.voices
 				if not channel:
 					await ctx.send("You need to be in a voice channel to use this command.")
 				await channel.channel.connect()
 
 			url = res[emoji_list.index(react)]['link']
 			await ctx.invoke(self.bot.get_command("play"), url=url)
-
 			await msg.clear_reactions()
-
 
 	@commands.command(help=speech.help.play, brief=speech.brief.play)
 	async def play(self, ctx, *, url=None):
+		queue = self.get_queue(ctx.guild.id)
+
 		if not ctx.voice_client:
 			channel = ctx.author.voice
 			if not channel:
@@ -257,10 +272,10 @@ class Voice(commands.Cog):
 			await channel.channel.connect()
 
 		if url is None:
-			if self.queue.is_paused:
-				self.queue.resume()
+			if queue.is_paused:
+				queue.resume()
 			else:
-				raise commands.BadArgument
+				raise commands.BadArgument()
 
 
 		if not ("http://" in url or "https://" in url):
@@ -277,26 +292,33 @@ class Voice(commands.Cog):
 
 				url = f"https://www.youtube.com/watch?v={watch_id}"
 
-		self.queue.add(url, ctx)
+		if "list" in url:
+			video_urls = Playlist(url).video_urls
+			for url in video_urls[:19]:
+				queue.add(url, ctx)
+		else:
+			queue.add(url, ctx)
 
-		songs = self.queue.get_queue_songs()
+
+		songs = queue.get_queue_songs()
 
 		if len(songs) == 1:
 			await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {self.formatted_time(songs[0].duration)}"))
 		else:
-			playtime = sum(song.duration for song in songs[1:]) + self.queue.song_time_left().total_seconds()
+			playtime = sum(song.duration for song in songs[1:-1]) + queue.song_time_left().total_seconds()
 			await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {self.formatted_time(playtime)}"))
 
 
 	@commands.command()
 	async def queue(self, ctx):
-		songs = self.queue.get_queue_songs()
+		queue = self.get_queue(ctx.guild.id)
+		songs = queue.get_queue_songs()
 
 		if songs[0].title is None:
 			return await ctx.send(f"Queue is empty! Enter a voice channel and add song with `{config.prefix}play [youtube url]`")
 
 		playlist = "Up next:\n"
-		playtime = self.queue.song_time_left().total_seconds()
+		playtime = queue.song_time_left().total_seconds()
 		total_playtime = playtime
 
 		for ix, song in enumerate(songs[1:]):
