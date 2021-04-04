@@ -186,6 +186,7 @@ class Voice(commands.Cog):
 
 	@commands.command(hidden=True, help=speech.help.leave, brief=speech.brief.leave)
 	async def leave(self, ctx, *args):
+		self.queue = Queue()
 		await ctx.voice_client.disconnect()
 
 
