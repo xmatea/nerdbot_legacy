@@ -175,7 +175,7 @@ class Voice(commands.Cog):
 		self.formatted_search = lambda res: "```" + "\n".join([f"{ix+1}: {r['title']}" for ix, r in enumerate(res)]) + "```"
 
 
-	@commands.command(help=speech.help.join, brief=speech.brief.join)
+	@commands.command(hidden=True, help=speech.help.join, brief=speech.brief.join)
 	async def join(self, ctx, *args):
 		channel = ctx.author.voice
 		if not channel:
@@ -184,7 +184,7 @@ class Voice(commands.Cog):
 		await ctx.send(embed=discord.Embed(description=f":musical_note: Joined **{channel.channel.name}** :musical_note:"))
 
 
-	@commands.command(help=speech.help.leave, brief=speech.brief.leave)
+	@commands.command(hidden=True, help=speech.help.leave, brief=speech.brief.leave)
 	async def leave(self, ctx, *args):
 		await ctx.voice_client.disconnect()
 
@@ -196,19 +196,19 @@ class Voice(commands.Cog):
 
 
 
-	@commands.command(help=speech.help.pause, brief=speech.brief.pause)
+	@commands.command(hidden=True, help=speech.help.pause, brief=speech.brief.pause)
 	async def pause(self, ctx):
 		self.queue.pause()
 		await ctx.send("Paused queue!")
 
 
-	@commands.command(help=speech.help.resume, brief=speech.brief.resume)
+	@commands.command(hidden=True, help=speech.help.resume, brief=speech.brief.resume)
 	async def resume(self, ctx):
 		self.queue.resume()
 		await ctx.send("Resumed queue!")
 
 
-	@commands.command()
+	@commands.command(help=speech.help.search, brief=speech.brief.search)
 	async def search(self, ctx, *, search_term):
 		if not search_term:
 			raise commands.UserInputError()
@@ -288,7 +288,7 @@ class Voice(commands.Cog):
 			await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {self.formatted_time(playtime)}"))
 
 
-	@commands.command()
+	@commands.command(help=speech.help.queue, brief=speech.brief.queue)
 	async def queue(self, ctx):
 		songs = self.queue.get_queue_songs()
 

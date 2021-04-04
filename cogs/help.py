@@ -22,20 +22,11 @@ class Help(commands.Cog):
                 cog = self.bot.get_cog(c)
                 if not cog.hidden:
                     text=""
-                    if cog.name == 'Voice':
-                        for ix, cmd in enumerate(cog.get_commands()):
-                            if cmd.hidden:
-                                return
-                            if ix % 2 == 0:
-                                text += f"{Config.prefix}{cmd.name},\t"
-                            else:
-                                text += f"{Config.prefix}{cmd.name}\n"
-
-                    else:
-                        for cmd in cog.get_commands():
-                            if not cmd.hidden:
-                                text += f"{Config.prefix}{cmd.name}\n"
+                    for cmd in cog.get_commands():
+                        if not cmd.hidden:
+                            text += f"{Config.prefix}{cmd.name}\n"
                     embed.add_field(name=c, value=text)
+
             embed.add_field(name="Links and support", value="If you like me, please consider voting for me [here](https://top.gg)!\n[Github repository](https://github.com/xmatea/nerdbot)", inline=False)
             embed.set_footer(text="NerdBot by mogzhey#5070 and tea#4001")
             await ctx.send(content="", embed=embed)
@@ -46,9 +37,8 @@ class Help(commands.Cog):
                 text=""
                 embed = discord.Embed(title=f"{cog.name} commands",colour=int(Config.default_embed_colour))
                 for cmd in cog.get_commands():
-                    if not cmd.hidden:
-                        text += f"{cmd.name} - {cmd.brief}\n"
-                embed.add_field(name="List of commands", value=text)
+                    text += f"`{cmd.name}` - {cmd.brief}\n"
+                embed.add_field(name="Full list of commands", value=text)
                 await ctx.send(content="", embed=embed)
                 return
 
