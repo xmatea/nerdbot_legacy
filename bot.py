@@ -42,5 +42,6 @@ async def on_ready():
     if DEV == "False":
         channel = bot.get_guild(Config.home_guild).get_channel(Config.log_channel)
         await channel.send(embed=discord.Embed(title="Nerdbot ready!", timestamp=datetime.now()))
-
-bot.run(TOKEN)
+        
+if __name__ == "__main__":
+    bot.run(TOKEN)

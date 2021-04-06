@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 from types import SimpleNamespace
 import re
 from youtubesearchpython import VideosSearch
+import numpy as np
 
 
 config = process.readjson('config.json')
@@ -78,29 +79,49 @@ class QueueItem:
 	def __iter__(self):
 		return iter((self.song, self.ctx, self.timer))
 
+def fetch_youtube(url):
+	songs=[]
+	for u in url:
+		try:
+			yt = YouTube(u)
+			songs.append(Song(u, yt))
+			print(Song(u, yt).title)
+		except:
+			pass
+	return songs
 
 class Queue: # make async
 	def __init__(self):
 		self._items = []
 		self.ctx = None
 		self.is_paused = False
-
 		self.current_song = SimpleNamespace(duration=0, title=None, url=None)
 		self.current_song_started = datetime.now()
 		self.song_time_left = lambda: timedelta(seconds=self.current_song.duration) - (datetime.now() - self.current_song_started)
-
 		self.songs = lambda: [item.song for item in self._items]
 
+	async def add_many(self, url, ctx):
+		loop = asyncio.get_running_loop()
 
-	def add(self, url, ctx):
-		try:		
+		songs = await loop.run_in_executor(None, fetch_youtube, url)
+		for song in songs:
+			total_songs_duration = sum([s.duration for s in self.songs()])
+			delay = self.song_time_left() + timedelta(seconds=total_songs_duration)
+			delay = delay.total_seconds()
+			timer = threading.Timer(delay, self.play_next)
+
+			queue_item = QueueItem(song, ctx, timer)
+			self._items.append(queue_item)
+			timer.start()
+
+	async def add(self, url, ctx):
+		yt = ""
+		try:
 			yt = YouTube(url)
-			print(yt)
-		except:
-			print("Failed to load video. Oops...")
+		except Exception as e:
+			await ctx.send("error")
 
 		song = Song(url, yt)
-
 		total_songs_duration = sum([s.duration for s in self.songs()])
 		delay = self.song_time_left() + timedelta(seconds=total_songs_duration)
 		delay = delay.total_seconds()
@@ -108,9 +129,7 @@ class Queue: # make async
 
 		queue_item = QueueItem(song, ctx, timer)
 		self._items.append(queue_item)
-
 		timer.start()
-
 
 	def play_next(self):
 		self.current_song, self.ctx, timer = self._items.pop(0)
@@ -167,7 +186,6 @@ class Queue: # make async
 		else:
 			self._items.pop(index-1)
 
-
 class Voice(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
@@ -181,7 +199,66 @@ class Voice(commands.Cog):
 		if not id in self.queues.keys():
 			self.queues.update({id: Queue()})
 		return self.queues[id]
-		
+
+	@commands.command(help=speech.help.play, brief=speech.brief.play)
+	async def play(self, ctx, *, url=None):
+		queue = self.get_queue(ctx.guild.id)
+
+		if not ctx.voice_client:
+			channel = ctx.author.voice
+			if not channel:
+				await ctx.send("You need to be in a voice channel to use this command.")
+			await channel.channel.connect()
+
+		if url is None:
+			if queue.is_paused:
+				queue.resume()
+			else:
+				raise commands.BadArgument()
+
+
+		if not ("http://" in url or "https://" in url):
+			search_term = url
+
+			if "-list" in search_term:
+				search_term = search_term.replace("-list", "")
+				await ctx.invoke(self.bot.get_command("search"), search_term=search_term)
+
+				return
+			else:
+				search = VideosSearch(search_term, limit=1)
+				watch_id = search.result()["result"][0]["id"]
+
+				url = f"https://www.youtube.com/watch?v={watch_id}"
+
+		if "list" in url:
+			try:
+				await ctx.send("Adding songs, please wait...")
+				playlist = Playlist(url)
+				# may take time
+				await queue.add_many(playlist.video_urls, ctx)
+
+				songs = queue.get_queue_songs()
+
+				await ctx.send(f"Added {len(songs)} songs from {playlist.title}")
+				await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {self.formatted_time(songs[0].duration)}"))
+			
+			except Exception as e:
+				await ctx.send("An error occurred!")
+				print(e)
+
+		else:
+			# may take time
+			await queue.add(url, ctx)
+
+			songs = queue.get_queue_songs()
+
+			if len(songs) == 1:
+				await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {self.formatted_time(songs[0].duration)}"))
+			else:
+				playtime = sum(song.duration for song in songs[1:-1]) + queue.song_time_left().total_seconds()
+				await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {self.formatted_time(playtime)}"))
+
 
 	@commands.command(help=speech.help.join, brief=speech.brief.join)
 	async def join(self, ctx, *args):
@@ -262,70 +339,57 @@ class Voice(commands.Cog):
 			await ctx.invoke(self.bot.get_command("play"), url=url)
 			await msg.clear_reactions()
 
-	@commands.command(help=speech.help.play, brief=speech.brief.play)
-	async def play(self, ctx, *, url=None):
-		queue = self.get_queue(ctx.guild.id)
-
-		if not ctx.voice_client:
-			channel = ctx.author.voice
-			if not channel:
-				await ctx.send("You need to be in a voice channel to use this command.")
-			await channel.channel.connect()
-
-		if url is None:
-			if queue.is_paused:
-				queue.resume()
-			else:
-				raise commands.BadArgument()
-
-
-		if not ("http://" in url or "https://" in url):
-			search_term = url
-
-			if "-list" in search_term:
-				search_term = search_term.replace("-list", "")
-				await ctx.invoke(self.bot.get_command("search"), search_term=search_term)
-
-				return
-			else:
-				search = VideosSearch(search_term, limit=1)
-				watch_id = search.result()["result"][0]["id"]
-
-				url = f"https://www.youtube.com/watch?v={watch_id}"
-
-		if "list" in url:
-			video_urls = Playlist(url).video_urls
-			for url in video_urls[:19]:
-				queue.add(url, ctx)
-		else:
-			queue.add(url, ctx)
-
-
-		songs = queue.get_queue_songs()
-
-		if len(songs) == 1:
-			await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {self.formatted_time(songs[0].duration)}"))
-		else:
-			playtime = sum(song.duration for song in songs[1:-1]) + queue.song_time_left().total_seconds()
-			await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {self.formatted_time(playtime)}"))
-
-
 	@commands.command()
 	async def queue(self, ctx):
 		queue = self.get_queue(ctx.guild.id)
 		songs = queue.get_queue_songs()
 
-		if songs[0].title is None:
-			return await ctx.send(f"Queue is empty! Enter a voice channel and add song with `{config.prefix}play [youtube url]`")
+		#if songs[0].title is None:
+			#return await ctx.send(f"Queue is empty! Enter a voice channel and add song with `{config.prefix}play [youtube url]`")
 
 		playlist = "Up next:\n"
 		playtime = queue.song_time_left().total_seconds()
 		total_playtime = playtime
 
-		for ix, song in enumerate(songs[1:]):
-			playlist += f"**{ix+1}: [{self.formatted_time(total_playtime)}]** {song.title}!\n"
-			total_playtime += song.duration
-		await ctx.send(embed=discord.Embed(title=f"Currently playing: {songs[0].title} :musical_note:\nTime remaining: {self.formatted_time(playtime)}", description=playlist))
+		display_items = [f"**{ix+1}: [{self.formatted_time(sum([song.duration for song in songs[:ix]])+playtime)}]** {song.title}!\n" for ix, song in enumerate(songs[1:])]
+		pages = [display_items[i:i + 20] for i in range(0, len(display_items), 20)]
+
+		index = 0
+		page_display = await ctx.send(embed=discord.Embed(title=f"Currently playing: {songs[0].duration} :musical_note:\nTime remaining: {self.formatted_time(playtime)}", description="".join(pages[0])).set_footer(text=f"Page {index+1} / {len(pages)}"))
+		
+		emoji_list = ["⬅", "➡"]
+		for emoji in emoji_list:
+			await page_display.add_reaction(emoji)
+
+		def check(reaction, user):
+			return reaction.emoji in emoji_list and reaction.message == page_display and user != self.bot.user
+
+		looping = True
+		while looping:
+			try:
+				reaction, user = await self.bot.wait_for('reaction_add', timeout=60.0, check=check)
+				react = reaction.emoji
+
+				if react == emoji_list[1]:
+					index += 1
+					try:
+						await page_display.edit(embed=discord.Embed(title=f"Currently playing: {songs[0].title} :musical_note:\nTime remaining: {self.formatted_time(playtime)}", description="".join(pages[index])).set_footer(text=f"Page {index+1} / {len(pages)}"))
+					except IndexError:
+						pass
+					await reaction.remove(user)
+
+				elif react == emoji_list[0]:
+					index -= 1
+					try:
+						await page_display.edit(embed=discord.Embed(title=f"Currently playing: {songs[0].title} :musical_note:\nTime remaining: {self.formatted_time(playtime)}", description="".join(pages[index])).set_footer(text=f"Page {index+1} / {len(pages)}"))
+					except IndexError:
+						pass
+					await reaction.remove(user)
+
+
+			except asyncio.TimeoutError:
+				looping = False
+				await page_display.clear_reactions()
 
 def setup(bot):
 	bot.add_cog(Voice(bot))
