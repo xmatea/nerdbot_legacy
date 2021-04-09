@@ -27,7 +27,7 @@ class Help(commands.Cog):
                             text += f"{Config.prefix}{cmd.name}\n"
                     embed.add_field(name=c, value=text)
 
-            embed.add_field(name="Links and support", value="If you like me, please consider voting for me [here](https://top.gg)!\n[Github repository](https://github.com/xmatea/nerdbot)", inline=False)
+            embed.add_field(name="Links and support", value="If you like me, please consider voting for me [here](https://discordbotlist.com/bots/nerdbot)!\n[Github repository](https://github.com/xmatea/nerdbot)", inline=False)
             embed.set_footer(text="NerdBot by mogzhey#5070 and tea#4001")
             await ctx.send(content="", embed=embed)
 
