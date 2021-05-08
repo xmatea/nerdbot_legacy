@@ -210,7 +210,6 @@ class Queue: # make async
 
 			loop = asyncio.get_running_loop()
 			self.leave_timer = threading.Timer(delay, leave_channel, [ctx, loop])
-			print(delay)
 			self.leave_timer.start()
 
 		except Exception as e:
