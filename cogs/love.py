@@ -11,7 +11,7 @@ speech = process.readjson('speech.json')
 class Love(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.hidden = False
+        self.hidden = True
         self.name = 'Love'
 
     @commands.command(help=speech.help.fact, brief=speech.brief.fact)

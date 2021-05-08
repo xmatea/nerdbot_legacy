@@ -287,7 +287,7 @@ class Voice(commands.Cog):
 				await ctx.send(embed=discord.Embed(title="Added to queue! :musical_note:", description=f"**{songs[-1].title}**\n Time until playing: {self.formatted_time(playtime)}"))
 
 
-	@commands.command(help=speech.help.join, brief=speech.brief.join)
+	@commands.command(hidden=True, help=speech.help.join, brief=speech.brief.join)
 	async def join(self, ctx, *args):
 		channel = ctx.author.voice
 
@@ -300,7 +300,7 @@ class Voice(commands.Cog):
 		await queue.reset_leave_timeout(ctx)
 
 
-	@commands.command(help=speech.help.leave, brief=speech.brief.leave)
+	@commands.command(hidden=True, help=speech.help.leave, brief=speech.brief.leave)
 	async def leave(self, ctx, *args):
 		self.queue = Queue(ctx)
 		await ctx.voice_client.disconnect()
@@ -314,21 +314,21 @@ class Voice(commands.Cog):
 
 
 
-	@commands.command(help=speech.help.pause, brief=speech.brief.pause)
+	@commands.command(hidden=True, help=speech.help.pause, brief=speech.brief.pause)
 	async def pause(self, ctx):
 		queue = self.get_queue(ctx.guild.id)
 		queue.pause()
 		await ctx.send("Paused queue!")
 
 
-	@commands.command(help=speech.help.resume, brief=speech.brief.resume)
+	@commands.command(hidden=True, help=speech.help.resume, brief=speech.brief.resume)
 	async def resume(self, ctx):
 		queue = self.get_queue(ctx.guild.id)
 		queue.resume()
 		await ctx.send("Resumed queue!")
 
 
-	@commands.command()
+	@commands.command(help=speech.help.search, brief=speech.brief.search)
 	async def search(self, ctx, *, search_term):
 		if not search_term:
 			raise commands.UserInputError()
@@ -369,6 +369,7 @@ class Voice(commands.Cog):
 			url = res[emoji_list.index(react)]['link']
 			await ctx.invoke(self.bot.get_command("play"), url=url)
 			await msg.clear_reactions()
+
 
 	@commands.command()
 	async def queue(self, ctx):
