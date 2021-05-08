@@ -99,6 +99,8 @@ class Queue: # make async
 		self.current_song_started = datetime.now()
 		self.song_time_left = lambda: timedelta(seconds=self.current_song.duration) - (datetime.now() - self.current_song_started)
 		self.songs = lambda: [item.song for item in self._items]
+		self.leave_timer = None
+
 
 	async def add_many(self, url, ctx):
 		loop = asyncio.get_running_loop()
@@ -113,6 +115,8 @@ class Queue: # make async
 			queue_item = QueueItem(song, ctx, timer)
 			self._items.append(queue_item)
 			timer.start()
+
+			await self.reset_leave_timeout(ctx)
 
 	async def add(self, url, ctx):
 		yt = ""
@@ -130,6 +134,9 @@ class Queue: # make async
 		queue_item = QueueItem(song, ctx, timer)
 		self._items.append(queue_item)
 		timer.start()
+
+		await self.reset_leave_timeout(ctx)
+
 
 	def play_next(self):
 		self.current_song, self.ctx, timer = self._items.pop(0)
@@ -186,6 +193,30 @@ class Queue: # make async
 		else:
 			self._items.pop(index-1)
 
+
+	async def reset_leave_timeout(self, ctx):
+		if self.leave_timer and self.leave_timer.is_alive():
+			self.leave_timer.cancel()
+
+		if len(self._items) == 0 and self.current_song.duration == 0:
+			delay = 120
+
+		else:
+			delay = sum([song.duration for song in self.songs()]) + self.song_time_left().total_seconds() + 120
+
+		try:
+			def leave_channel(ctx, loop):
+				asyncio.ensure_future(ctx.voice_client.disconnect(), loop=loop)
+
+			loop = asyncio.get_running_loop()
+			self.leave_timer = threading.Timer(delay, leave_channel, [ctx, loop])
+			print(delay)
+			self.leave_timer.start()
+
+		except Exception as e:
+			print(e)
+
+
 class Voice(commands.Cog):
 	def __init__(self, bot):
 		self.bot = bot
@@ -200,15 +231,13 @@ class Voice(commands.Cog):
 			self.queues.update({id: Queue()})
 		return self.queues[id]
 
+
 	@commands.command(help=speech.help.play, brief=speech.brief.play)
 	async def play(self, ctx, *, url=None):
 		queue = self.get_queue(ctx.guild.id)
 
 		if not ctx.voice_client:
-			channel = ctx.author.voice
-			if not channel:
-				await ctx.send("You need to be in a voice channel to use this command.")
-			await channel.channel.connect()
+			await ctx.invoke(self.bot.get_command("join"))
 
 		if url is None:
 			if queue.is_paused:
@@ -242,7 +271,7 @@ class Voice(commands.Cog):
 
 				await ctx.send(f"Added {len(songs)} songs from {playlist.title}")
 				await ctx.send(embed=discord.Embed(title="Playing now! :musical_note:", description=f"**{songs[0].title}**\nDuration: {self.formatted_time(songs[0].duration)}"))
-			
+
 			except Exception as e:
 				await ctx.send("An error occurred!")
 				print(e)
@@ -250,7 +279,6 @@ class Voice(commands.Cog):
 		else:
 			# may take time
 			await queue.add(url, ctx)
-
 			songs = queue.get_queue_songs()
 
 			if len(songs) == 1:
@@ -263,15 +291,19 @@ class Voice(commands.Cog):
 	@commands.command(help=speech.help.join, brief=speech.brief.join)
 	async def join(self, ctx, *args):
 		channel = ctx.author.voice
+
 		if not channel:
 			await ctx.send("You need to be in a voice channel to use this command.")
 		await channel.channel.connect()
 		await ctx.send(embed=discord.Embed(description=f":musical_note: Joined **{channel.channel.name}** :musical_note:"))
 
+		queue = self.get_queue(ctx.guild.id)
+		await queue.reset_leave_timeout(ctx)
+
 
 	@commands.command(help=speech.help.leave, brief=speech.brief.leave)
 	async def leave(self, ctx, *args):
-		self.queue = Queue()
+		self.queue = Queue(ctx)
 		await ctx.voice_client.disconnect()
 
 
