@@ -1,4 +1,2 @@
 # nerdbot
-nerdbot, a bot for nerds made by nerds
-
-# Morgan loves Matea very much
+nerdbot, a discord bot for nerds made by nerds
