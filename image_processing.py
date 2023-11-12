@@ -7,7 +7,7 @@ from process import colour_convert
 from functools import reduce
 from PIL import Image, ImageDraw, ImageFont
 
-# generate colour palette using k-means algorithm
+# generate colour palette using the k-means algorithm
 def generate_palette(img: Image, n_colours:int = 5) -> io.BytesIO:
 
 	dist = lambda p, q: sqrt(sum((p[i] - q[i]) ** 2 for i in range(len(p))))
