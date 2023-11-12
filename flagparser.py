@@ -1,3 +1,4 @@
+# Parses all flag arguments
 import re
 
 def format(args: str, flag_list: tuple, clearWhiteSpace: bool=True):
